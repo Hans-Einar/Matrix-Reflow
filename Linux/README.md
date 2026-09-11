@@ -1,7 +1,7 @@
 # Matrix Reflow on Linux
 
-Iteration 1 builds a native C99/C++17 application. Rendering and the font atlas
-are being added on this branch; XScreenSaver integration belongs to iteration 2.
+Iteration 1 builds a native C99/C++17 application with a FreeType atlas and
+a shared OpenGL 3.3/GLX renderer; XScreenSaver integration belongs to iteration 2.
 See [implementation plan](implementation-plan.md) and [study](study.md).
 
 ## Build
@@ -29,3 +29,16 @@ configure time. Build artifacts stay outside source control.
 8-bit image without opening X11. The font is built into the executable; its bytes
 come from `windows/Matrix-Code.ttf`. Generated headers live in the build tree.
 The renderer applies per-instance flips; the atlas itself is not mirrored.
+
+## GLX control scene and checks
+
+Run `./build/linux/matrix-reflow --control` for the windowed control scene.
+Escape or window close exits. Use `--frames 2 --capture /tmp/control.ppm` for
+a bounded run and capture. Shader/font data is embedded, so cwd does not matter.
+`--hidden` leaves the program's own window unmapped for automated checks.
+
+`./build/linux/graphics-test` explicitly runs graphics tests on the current
+DISPLAY. It never targets other applications. To include it in CTest configure
+with `-DREFLOW_GL_TESTS=ON`; otherwise CTest runs only display-independent tests.
+A suitable Xvfb display with GLX can be used for software rendering; this does
+not replace testing the actual GPU or, in iteration 2, XScreenSaver preview.

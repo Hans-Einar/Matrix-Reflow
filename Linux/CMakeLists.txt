@@ -28,13 +28,22 @@ target_include_directories(reflow-atlas PUBLIC src PRIVATE "${CMAKE_CURRENT_BINA
 target_link_libraries(reflow-atlas PRIVATE Freetype::Freetype)
 target_compile_options(reflow-atlas PRIVATE -Wall -Wextra -Wpedantic)
 
+embed_resource(fullscreen_vertex "${CMAKE_CURRENT_SOURCE_DIR}/shaders/fullscreen.vert")
+embed_resource(control_fragment "${CMAKE_CURRENT_SOURCE_DIR}/shaders/control.frag")
+embed_resource(composite_fragment "${CMAKE_CURRENT_SOURCE_DIR}/shaders/composite.frag")
+add_library(reflow-gl STATIC src/x11_host.cpp src/glx_context.cpp src/gl_resources.cpp src/renderer.cpp
+    ${fullscreen_vertex_HEADER} ${control_fragment_HEADER} ${composite_fragment_HEADER})
+target_include_directories(reflow-gl PUBLIC src PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
+target_link_libraries(reflow-gl PUBLIC PkgConfig::X11 PkgConfig::EPOXY)
+target_compile_options(reflow-gl PRIVATE -Wall -Wextra -Wpedantic)
+
 add_library(mmcore STATIC ../core/mmcore.c)
 target_include_directories(mmcore PUBLIC ../core)
 target_link_libraries(mmcore PUBLIC m)
 target_compile_options(mmcore PRIVATE -Wall -Wextra -Wpedantic)
 
 add_executable(matrix-reflow src/main.cpp)
-target_link_libraries(matrix-reflow PRIVATE mmcore reflow-atlas)
+target_link_libraries(matrix-reflow PRIVATE mmcore reflow-atlas reflow-gl)
 target_compile_options(matrix-reflow PRIVATE -Wall -Wextra -Wpedantic)
 
 include(CTest)
@@ -46,6 +55,13 @@ if(BUILD_TESTING)
     add_executable(atlas-test tests/atlas_test.cpp)
     target_link_libraries(atlas-test PRIVATE reflow-atlas mmcore)
     add_test(NAME atlas-test COMMAND atlas-test)
+    add_executable(graphics-test tests/graphics_test.cpp)
+    target_link_libraries(graphics-test PRIVATE reflow-gl)
+    option(REFLOW_GL_TESTS "Run GLX tests on the current DISPLAY with CTest" OFF)
+    if(REFLOW_GL_TESTS)
+        add_test(NAME graphics-test COMMAND graphics-test)
+        set_tests_properties(graphics-test PROPERTIES LABELS graphics TIMEOUT 30)
+    endif()
 endif()
 
 include(GNUInstallDirs)

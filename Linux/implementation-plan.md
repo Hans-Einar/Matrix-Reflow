@@ -1,6 +1,6 @@
 # Implementasjonsplan: Matrix-Reflow for Linux
 
-Dato: 11. september 2026. Status: iterasjon 1 pågår; I1-M1–M2 er passert.
+Dato: 11. september 2026. Status: iterasjon 1 pågår; I1-M1–M3 er passert.
 Grunnlag: [portstudien](study.md), upstream-revisjon
 `2577d25f747d629a08e19cd5ad44c9e1b4609002` og brukerens ønskede iterasjonsrekkefølge.
 Repository: `Hans-Einar/Matrix-Reflow`. Målplattform: AlmaLinux 10.2, X11,
@@ -168,7 +168,7 @@ Test også manglende/ødelagte fontdata med en kontrollert feilbane.
 
 Commit: `feat(linux): I1-M2 rasterize the embedded Matrix font with FreeType`.
 
-### [ ] I1-M3 — GLX-context og permanente GPU-ressurser
+### [x] I1-M3 — GLX-context og permanente GPU-ressurser
 
 Leveranse: X11-testvindu, GL 3.3-context, shaderkompilering med gode feillogger,
 RAII for GPU-ressurser, scene-FBO og opakt komposisjonspass. Legg grunnlaget for

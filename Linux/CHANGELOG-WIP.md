@@ -8,4 +8,7 @@
 * Embedded Matrix font and FreeType atlas with all 57 original glyphs;
   `--dump-atlas FILE.pgm` works without X11.
 
+* Shared OpenGL 3.3/GLX renderer with RGBA16F scene target, opaque composition,
+  resize handling, shader diagnostics and controlled shutdown.
+
 XScreenSaver integration, animated rendering, bloom and CRT are not yet implemented.
