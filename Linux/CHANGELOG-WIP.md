@@ -51,3 +51,16 @@ remain unverified. Bloom, CRT and the full settings tool are still pending.
   GPU/CPU benchmark. The 1080p sample measured 3.93 ms GPU time with bloom.
 * Actual embedded/expanded previews were checked with a compositor; no long
   battery-draining tests were run. CRT filtering remains iteration 4.
+
+## Iteration 4
+
+* Optional full-size CRT intermediate and shared final-output routing, with
+  on-demand allocation, immediate release on disable and identity diagnostics.
+* Reference CRT RGB mask, horizontal phosphor spread, channel convergence,
+  line ripple, lifted black level, highlight rolloff and vignette. The mask
+  uses top-left output-pixel coordinates, independent of scene/camera motion.
+* All bloom/CRT combinations work in standalone and XScreenSaver previews;
+  CRT-off captures match iteration 3 byte-for-byte. CRT remains off by default.
+* Short 1080p checks measured 5.78 ms GPU time with bloom and CRT, with a lazy
+  15.82 MiB CRT intermediate. No long battery-draining tests were run.
+* Added comparison captures, CLI/identity checks and expanded-preview validation.

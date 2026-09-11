@@ -34,7 +34,7 @@ int main(int argc, char** argv) try {
     std::uint64_t seed = 12345;
     double warmup = 0, duration = 0;
     int bloom_level=0;
-    bool post_enabled=true, post_explicit=false, snapshot=false;
+    bool post_enabled=true, post_explicit=false, snapshot=false, crt_identity=false;
     int fps_limit=60; bool stats=false;
     std::string capture, dump_atlas;
     for (int i = 1; i < argc; ++i) {
@@ -44,7 +44,7 @@ int main(int argc, char** argv) try {
             return argv[i];
         };
         if (arg == "--help") {
-            std::cout << "Matrix Reflow Linux - iteration 3\n"
+            std::cout << "Matrix Reflow Linux - iteration 4\n"
                          "  --windowed           Show animated rain (default)\n"
                          "  --root               Render in XSCREENSAVER_WINDOW (never desktop root)\n"
                          "  --window-id ID       Render in a borrowed X11 window\n"
@@ -65,6 +65,8 @@ int main(int argc, char** argv) try {
                          "  --bloom / --no-bloom Enable/disable glow (default on)\n"
                          "  --bloom-strength N   Bloom intensity 0..1 (default .9)\n"
                          "  --distortion N       Barrel/chromatic distortion 0..1 (default 0)\n"
+                         "  --crt / --no-crt     CRT filter (default off)\n"
+                         "  --crt-identity       Diagnostic identity pass through CRT target\n"
                          "  --no-post            Raw iteration-2 output, for comparisons\n"
                          "  --bloom-level N      Inspect extracted bloom level 1..5\n"
                          "  --control            Display the renderer control scene\n"
@@ -91,6 +93,8 @@ int main(int argc, char** argv) try {
         else if (arg == "--hidden") visible = false;
         else if (arg == "--fps-limit") fps_limit=number(value(),240);
         else if (arg == "--bloom" || arg == "--no-bloom") {settings.bloom=arg=="--bloom";post_explicit=true;}
+        else if (arg == "--crt" || arg == "--no-crt") {settings.crtEmulation=arg=="--crt";crt_identity=false;post_explicit=true;}
+        else if (arg == "--crt-identity") {settings.crtEmulation=1;crt_identity=true;post_explicit=true;}
         else if (arg == "--no-post") post_enabled=false;
         else if (arg == "--bloom-level") bloom_level=number(value(),5);
         else if (arg == "--stats") stats=true;
@@ -183,7 +187,7 @@ int main(int argc, char** argv) try {
         if(!snapshot) simulation.advance(elapsed);
         renderer.resize(host.width(), host.height());
         renderer.postprocess({post_enabled && (!(control||lab) || post_explicit),settings.bloom!=0,
-            static_cast<float>(settings.bloomIntensity),static_cast<float>(settings.crtDistort),simulation.view().time});
+            static_cast<float>(settings.bloomIntensity),static_cast<float>(settings.crtDistort),simulation.view().time,settings.crtEmulation!=0,crt_identity});
         if (control) renderer.draw_control();
         else if(lab) renderer.draw_instances(instances.data(), instances.size(), reflow::glyph_lab_view(host.width(), host.height()));
         else renderer.draw_instances(simulation.data(), simulation.count(), simulation.view());

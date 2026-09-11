@@ -1,6 +1,6 @@
 # Implementasjonsplan: Matrix-Reflow for Linux
 
-Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 2 er merget; I3-M1–M3 er passert (integrasjon følges i PR #3).
+Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 3 er merget; I4-M1–M3 er passert (integrasjon følges i PR #4).
 Grunnlag: [portstudien](study.md), upstream-revisjon
 `2577d25f747d629a08e19cd5ad44c9e1b4609002` og brukerens ønskede iterasjonsrekkefølge.
 Repository: `Hans-Einar/Matrix-Reflow`. Målplattform: AlmaLinux 10.2, X11,
@@ -326,8 +326,9 @@ PR ferdig når: I3-M1–M3 er passert og I2s preview-kontroller fortsatt består
 Branch: `linux/04-crt`. Avhengighet: merget iterasjon 3.
 Sluttresultat: valgfri CRT-behandling etter komposisjon, av som standard slik
 dagens Reflow-standard tilsier. CRT-forvrengning og CRT-emulering er ulike valg.
+Batterihensyn videreføres: høyst to byggejobber og korte, avgrensede tester.
 
-### [ ] I4-M1 — Valgfritt mål og pass etter komposisjon
+### [x] I4-M1 — Valgfritt mål og pass etter komposisjon
 
 Leveranse: CRT-mellommål opprettes bare når det trengs. Tegnebanen velger direkte
 sluttkomposisjon når CRT er av, ellers komposisjon til mellomtekstur og ett CRT-pass.
@@ -339,7 +340,7 @@ en ubrukt fullstor CRT-tekstur. HDR-sceneformat skal ikke forveksles med skjerm-
 
 Commit: `feat(linux): I4-M1 add optional CRT render target and bypass`.
 
-### [ ] I4-M2 — Oversett CRT-filteret
+### [x] I4-M2 — Oversett CRT-filteret
 
 Leveranse: scanlines, RGB-maskemønster, horisontal utjevning, kanalavvik,
 sortnivå, høylysbehandling og vignett fra HLSL. Bruk fysiske outputpiksler og en
@@ -351,7 +352,7 @@ scanline-retning og kombinasjonen med den separate forvrengningsparameteren.
 
 Commit: `feat(linux): I4-M2 port the CRT filter to GLSL`.
 
-### [ ] I4-M3 — Kombinasjoner og regresjonskontroll
+### [x] I4-M3 — Kombinasjoner og regresjonskontroll
 
 Leveranse: dokumenterte resultater for bloom/CRT av-av, på-av, av-på og på-på,
 inkludert ressursbruk og tillegg i frame-tid. Oppdater WIP-notater og bruksveiledning.

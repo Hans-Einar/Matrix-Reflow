@@ -3,8 +3,8 @@
 The Linux port now renders animated Matrix rain in its own window and inside
 XScreenSaver's actual preview and saver windows. Both use the same OpenGL 3.3/GLX
 renderer, embedded FreeType font atlas and shared C simulation. Multiscale bloom
-and SDR composition are implemented. CRT and the full configuration tool follow
-in iterations 4–5.
+and SDR composition are implemented, with an optional CRT filter. The full
+configuration tool and profiles follow in iteration 5.
 See the [implementation plan](implementation-plan.md) and [study](study.md).
 
 ## Build and run
@@ -78,7 +78,7 @@ otherwise the first frame. SIGTERM exits normally.
 ## Bloom and output controls
 
 Bloom defaults to on at strength .9. XScreenSaver's effect settings now expose
-**Bloom**, **Glow strength**, **Glass distortion** and **Frame limit**. The CLI
+**Bloom**, **Glow strength**, **Glass distortion**, **CRT emulation** and **Frame limit**. The CLI
 also supports:
 
 ```sh
@@ -90,7 +90,7 @@ matrix-reflow --no-post
 `--no-bloom` disables glow while retaining the reference vignette/edge treatment.
 `--no-post` gives raw iteration-2 output. Distortion defaults to zero; bloom and
 distortion ease in over 1.8 seconds. The diagnostic control/glyph scenes stay raw
-unless you explicitly request a bloom/distortion option. `--bloom-level 1..5`
+unless you explicitly request a bloom, distortion or CRT option. `--bloom-level 1..5`
 shows extraction before upsampling, at half resolution down to 1/32 resolution.
 
 For reproducible captures, use `--snapshot-time 8 --seed 12345 --frames 1` with
@@ -106,9 +106,36 @@ The output is rendered into an RGBA8 FBO so obscured/unmapped windows cannot
 skip composition. The short sample is not a power, thermal or sustained-FPS test.
 See [iteration 3 validation](validation.md#i3-m3) for measurements and scope.
 
+## CRT emulation
+
+CRT is **off by default**. Enable **CRT emulation** in the XScreenSaver effect
+settings, or try:
+
+```sh
+matrix-reflow --crt --fps-limit 30
+matrix-reflow --crt --no-bloom
+matrix-reflow --no-crt
+```
+
+The filter adds the reference RGB mask, horizontal phosphor spread, convergence
+fringes, line ripple, lifted black level and highlight rolloff after composition.
+It is independent of **Glass distortion** (`--distortion`), which models curved
+glass. CRT uses output-pixel coordinates, so the fine mask should be inspected
+at 100% image scale. It does not add history-based afterglow.
+
+`--no-post` bypasses both composition effects and CRT. `--crt-identity` exercises
+the intermediate through a neutral pass for diagnostics. A full-size FP16
+intermediate exists only while CRT is active (about 15.82 MiB at 1080p).
+`bloom-benchmark` now also measures CRT alone and CRT with bloom.
+
+Compare [CRT alone](docs/rain-crt.png), [CRT + bloom](docs/rain-crt-bloom.png),
+[bloom alone](docs/rain-bloom.png) and [neither](docs/rain-no-bloom.png), at the
+same seed/time. See [iteration 4 validation](validation.md#i4-m3) for reference
+quirks, GPU measurements and actual preview checks.
+
 ## Current limits
 
-SDR output has no CRT filter yet; Windows visual parity is not claimed. The
+Windows visual parity is not claimed. The
 scene uses premultiplied blending and an opaque final composite. Font mipmaps
 stop at level 3 to retain integral cell boundaries. Native Wayland and screen
 locking/authentication are outside this port. See [iteration 2 validation](validation.md#i2-m4)

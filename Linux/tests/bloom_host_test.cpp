@@ -21,8 +21,10 @@ int main() try {
             return renderer.read_rgba();
         };
         for(PostSettings post : {PostSettings{true,true,.9f,0,8}, {true,false,.9f,0,8},
-                                {true,true,0,0,8}, {true,true,.9f,1,8}})
+                                {true,true,0,0,8}, {true,true,.9f,1,8},
+                                {true,false,.9f,0,8,true}, {true,true,.9f,0,8,true},
+                                {true,false,.9f,1,8,true}, {true,true,.9f,1,8,true}})
             if(draw(false,post)!=draw(true,post)) throw std::runtime_error("Owned/borrowed bloom mismatch");
     }
-    std::cout<<"Owned and borrowed output match with bloom on/off/zero, distortion and tiny sizes\n";
+    std::cout<<"Owned and borrowed output match with bloom/CRT combinations, zero strength, distortion and tiny sizes\n";
 } catch(const std::exception& e) {std::cerr<<e.what()<<'\n';return 1;}
