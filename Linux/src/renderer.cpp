@@ -96,7 +96,7 @@ void Renderer::draw_control() {
     glDrawArrays(GL_TRIANGLES, 0, 3);
     finish_scene();
 }
-void Renderer::draw_instances(const MMGlyphInstance* instances, std::size_t count, const RenderView& view) {
+void Renderer::draw_instances(const MMGlyphInstance* instances, std::size_t count, const RenderView& view, GLuint target) {
     if (!width_ || !height_) return;
     if ((!instances && count) || count > (64 * 1024 * 1024) / sizeof(MMGlyphInstance))
         throw std::runtime_error("Glyph instances exceed 64 MiB upload budget or are missing");
@@ -123,7 +123,7 @@ void Renderer::draw_instances(const MMGlyphInstance* instances, std::size_t coun
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, static_cast<GLsizei>(count));
-    finish_scene();
+    finish_scene(target);
 }
 void Renderer::bloom_level(int level) {
     if(level<0 || level>5) throw std::runtime_error("Bloom level must be 0..5");
@@ -136,13 +136,13 @@ void Renderer::postprocess(const PostSettings& settings) {
         throw std::runtime_error("Invalid postprocessing settings");
     post_=settings;
 }
-void Renderer::finish_scene() {
+void Renderer::finish_scene(GLuint target) {
     if(bloom_level_ || (post_.enabled && post_.bloom && post_.intensity>0)) {
         if(!bloom_) bloom_=std::make_unique<Bloom>();
         bloom_->extract(scene_.get(),width_,height_);
         if(!bloom_level_) bloom_->accumulate();
     } else bloom_.reset();
-    composite();
+    composite(target);
 }
 void Renderer::composite(GLuint target) {
     glBindFramebuffer(GL_FRAMEBUFFER, target);

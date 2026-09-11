@@ -46,3 +46,8 @@ remain unverified. Bloom, CRT and the full settings tool are still pending.
   strength, barrel/chromatic distortion, vignette, edge fade and startup easing.
 * Glow defaults to .9; `--no-bloom`, `--bloom-strength`, `--distortion` and
   `--no-post` support tuning and comparisons. Unused bloom targets are released.
+* XScreenSaver controls for bloom, glow strength, distortion and frame limit.
+* Deterministic snapshot mode, owned/borrowed pixel parity checks and a bounded
+  GPU/CPU benchmark. The 1080p sample measured 3.93 ms GPU time with bloom.
+* Actual embedded/expanded previews were checked with a compositor; no long
+  battery-draining tests were run. CRT filtering remains iteration 4.

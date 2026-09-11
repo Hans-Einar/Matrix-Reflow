@@ -1,6 +1,6 @@
 # Implementasjonsplan: Matrix-Reflow for Linux
 
-Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 2 er merget; iterasjon 3 pågår, I3-M1–M2 er passert.
+Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 2 er merget; I3-M1–M3 er passert (integrasjon følges i PR #3).
 Grunnlag: [portstudien](study.md), upstream-revisjon
 `2577d25f747d629a08e19cd5ad44c9e1b4609002` og brukerens ønskede iterasjonsrekkefølge.
 Repository: `Hans-Einar/Matrix-Reflow`. Målplattform: AlmaLinux 10.2, X11,
@@ -305,7 +305,7 @@ den inaktive `whiteFlash`-termen gjøres som del av shaderoversettelsen.
 
 Commit: `feat(linux): I3-M2 composite multiscale bloom into the rain scene`.
 
-### [ ] I3-M3 — Visuell kontroll og målt kostnad
+### [x] I3-M3 — Visuell kontroll og målt kostnad
 
 Leveranse: sammenlignbare bilder ved fast seed/tid, frame-tidsmålinger mot I2
 og eventuell eksplisitt bloom-kvalitetsinnstilling dersom målingene krever det.

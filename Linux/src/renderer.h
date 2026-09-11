@@ -29,14 +29,15 @@ public:
     void draw_control();
     void postprocess(const PostSettings& settings);
     void bloom_level(int level); // 0 = normal scene, 1..5 = extracted diagnostic level
-    void draw_instances(const MMGlyphInstance* instances, std::size_t count, const RenderView& view);
+    // Optional caller-owned output FBO allows uncropped offscreen measurement.
+    void draw_instances(const MMGlyphInstance* instances, std::size_t count, const RenderView& view, GLuint target=0);
     // Capture the same final composite offscreen, independent of X11 occlusion.
     // Top row first; capture target exists only for the duration of the call.
     std::vector<std::uint8_t> read_rgba();
     void write_ppm(const std::string& path);
 private:
     void begin_scene();
-    void finish_scene();
+    void finish_scene(GLuint target=0);
     PostSettings post_;
     int bloom_level_=0;
     std::unique_ptr<Bloom> bloom_;

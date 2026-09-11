@@ -2,8 +2,9 @@
 
 The Linux port now renders animated Matrix rain in its own window and inside
 XScreenSaver's actual preview and saver windows. Both use the same OpenGL 3.3/GLX
-renderer, embedded FreeType font atlas and shared C simulation. Bloom, CRT and
-the full configuration tool follow in iterations 3–5.
+renderer, embedded FreeType font atlas and shared C simulation. Multiscale bloom
+and SDR composition are implemented. CRT and the full configuration tool follow
+in iterations 4–5.
 See the [implementation plan](implementation-plan.md) and [study](study.md).
 
 ## Build and run
@@ -74,15 +75,41 @@ provides a bounded measurement. Reported frame work includes presentation waits,
 so it is not a GPU-only timer. Captures use the final frame with `--frames`,
 otherwise the first frame. SIGTERM exits normally.
 
+## Bloom and output controls
+
+Bloom defaults to on at strength .9. XScreenSaver's effect settings now expose
+**Bloom**, **Glow strength**, **Glass distortion** and **Frame limit**. The CLI
+also supports:
+
+```sh
+matrix-reflow --bloom-strength .5 --distortion .3 --fps-limit 30
+matrix-reflow --no-bloom
+matrix-reflow --no-post
+```
+
+`--no-bloom` disables glow while retaining the reference vignette/edge treatment.
+`--no-post` gives raw iteration-2 output. Distortion defaults to zero; bloom and
+distortion ease in over 1.8 seconds. The diagnostic control/glyph scenes stay raw
+unless you explicitly request a bloom/distortion option. `--bloom-level 1..5`
+shows extraction before upsampling, at half resolution down to 1/32 resolution.
+
+For reproducible captures, use `--snapshot-time 8 --seed 12345 --frames 1` with
+`--capture FILE.ppm`. This freezes simulation/shimmer at the selected 60 Hz step
+and fixes the clock to noon. It is a diagnostic mode, not normal animation.
+[Same frame without bloom](docs/rain-no-bloom.png) and
+[with bloom](docs/rain-bloom.png) show the reference .9 intensity at 1080p.
+
+`bloom-benchmark OUTPUT-DIRECTORY` is an optional build-tree tool, never run by
+CTest. It measures 12 frames per mode at 1080p and the current display size
+(deduplicated if equal), using GPU elapsed-time queries and process CPU time.
+The output is rendered into an RGBA8 FBO so obscured/unmapped windows cannot
+skip composition. The short sample is not a power, thermal or sustained-FPS test.
+See [iteration 3 validation](validation.md#i3-m3) for measurements and scope.
+
 ## Current limits
 
-SDR output has no bloom or CRT yet; Windows visual parity is not claimed. The
+SDR output has no CRT filter yet; Windows visual parity is not claimed. The
 scene uses premultiplied blending and an opaque final composite. Font mipmaps
 stop at level 3 to retain integral cell boundaries. Native Wayland and screen
 locking/authentication are outside this port. See [iteration 2 validation](validation.md#i2-m4)
 for hardware coverage, preview checks and the deliberately shortened stability run.
-
-## Iteration 3 development
-
-`--bloom-level 1..5` inspects the extracted half-resolution through 1/32-resolution
-levels. These diagnostics use the normal renderer and also work in borrowed windows.
