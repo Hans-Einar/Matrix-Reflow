@@ -37,3 +37,17 @@ At this milestone, animated rendering and XScreenSaver integration were still pe
 The planned 30-minute run was stopped at the user's request on battery. Short
 checks passed; long-term memory stability and physical multi-monitor behavior
 remain unverified. Bloom, CRT and the full settings tool are still pending.
+
+## Iteration 3
+
+* Four-tap soft-knee extraction and five RGBA16F bloom levels with reference
+  13-tap downsampling, tiny-window handling and level diagnostics.
+* Reference 9-tap additive upsampling and opaque SDR composition, with bloom
+  strength, barrel/chromatic distortion, vignette, edge fade and startup easing.
+* Glow defaults to .9; `--no-bloom`, `--bloom-strength`, `--distortion` and
+  `--no-post` support tuning and comparisons. Unused bloom targets are released.
+* XScreenSaver controls for bloom, glow strength, distortion and frame limit.
+* Deterministic snapshot mode, owned/borrowed pixel parity checks and a bounded
+  GPU/CPU benchmark. The 1080p sample measured 3.93 ms GPU time with bloom.
+* Actual embedded/expanded previews were checked with a compositor; no long
+  battery-draining tests were run. CRT filtering remains iteration 4.

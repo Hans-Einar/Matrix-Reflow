@@ -165,3 +165,108 @@ waived. Physical multi-monitor operation, real suspend/resume, Windows rendering
 parity, bloom and CRT remain untested or deferred. Synthetic aspect ratios and
 a 600-second simulation pause are covered, but are not substitutes for hardware
 multi-monitor or suspend testing.
+
+## I3-M1
+
+2026-09-11: Release bloom/graphics/glyph tests passed on Intel HD 620 (0.87 s).
+The reference four-tap extraction uses threshold .72*.8, soft knee .3 and gain
+1.5. The following 13-tap kernels retain normalized weights. Float readback
+checks constant dark/mid/bright inputs, HDR retention (1.5), all five dimensions,
+a bright patch spreading with decreasing peak, and 1x1/odd/narrow resizes.
+Each level owns a distinct RGBA16F texture and complete framebuffer; replacement
+allocation is transactional. A pass rejects source/destination aliasing.
+`--bloom-level 1..5` displays an extracted level through the normal composite;
+a one-frame level-5 diagnostic ran successfully. No-bloom glyph/control tests
+retain their original pixel values. Kernels follow `windows/shaders.hlsl` in
+this repository; no external Windows screenshot parity is claimed.
+
+## I3-M2
+
+2026-09-11: Release bloom/composite, original graphics/glyph and CLI tests passed
+on Intel HD 620 in 1.85 seconds. The 9-tap tent upsample uses ONE/ONE blending
+into each existing larger level without sampling that destination. Constant
+bright input sums to 7.5 (five contributions of 1.5), proving that upsampling
+retains the previously extracted levels. Other checks cover monotonic intensity,
+zero-intensity/off equivalence, opaque alpha, repeated capture without repeated
+accumulation, startup easing, invalid settings, tiny resize and runtime toggling.
+
+The composite ports reference barrel warp, chromatic offsets, vignette and edge
+fade. At full distortion the corners are black rather than stretched edge texels.
+The 1.8-second smoothstep ramps bloom and distortion, as in Windows DrawPost;
+it does not introduce an unrelated whole-scene fade. The SDR reference swapchain
+is B8G8R8A8_UNORM, not an sRGB view. The port retains FP16 arithmetic then UNORM
+clamping without an additional gamma/tone-map pass; a center-color check detects
+unexpected gamma changes. GLSL keeps output alpha 1 by design. No changes were
+made to the existing inactive whiteFlash term or glyph shader.
+
+The application defaults to bloom at .9, with distortion 0. `--no-bloom` disables
+only glow; `--no-post` retains iteration-2 raw output for comparisons. Diagnostic
+control/glyph scenes stay raw unless bloom/distortion is explicitly requested.
+Bloom textures are released when unused; level inspection shows extraction
+before accumulation. Final visual/preview and cost checks follow in I3-M3.
+
+## I3-M3
+
+2026-09-11, AlmaLinux 10.2, Intel HD 620, Mesa 25.2.7. Actual display resolution
+is **1920x1080**, so the actual-size and 1080p measurements are the same case.
+No 4K screen was available and no 4K workload was added on battery. All builds
+used at most two jobs. No long-running stability test was performed.
+
+### Quality and integration
+
+[Without bloom](docs/rain-no-bloom.png) and [with bloom](docs/rain-bloom.png)
+are lossless readbacks at seed 12345, exactly 8 simulated seconds, fixed noon
+clock, 9,194 instances and default settings. Both were visually inspected:
+bright strokes gain a soft halo, dark columns remain visible and the corners
+fade without clamp streaks. The bloom test also checks the distortion extremes.
+These are Linux comparisons, not claimed Windows reference parity.
+
+The owned/borrowed host test gives byte-identical results for bloom on/off,
+strength zero and full distortion at 1x1, 3x5, 320x180 and 681x382. Owner-driven
+resize and destruction tests now run with bloom/warp enabled. Release's ten
+short tests passed in 4.44 seconds; the unchanged simulation test was covered
+in iteration 2 and not repeated on battery. Debug built successfully and the
+four focused bloom/host/lifecycle tests passed in 3.89 seconds. CLI snapshots
+match across different frame counts; invalid effect values are rejected.
+
+Actual XScreenSaver 6.16 settings were exercised on private Xvfb/llvmpipe with
+`xcompmgr -n`, including more than twenty effect selections across bounded runs,
+the Bloom checkbox off/on, and expanded preview. The final XML-controlled run
+used a 20 FPS cap. [Actual embedded preview](docs/bloom-xscreensaver-preview.png)
+is read from the 681x382 host. The checkbox launched `--no-bloom` when unchecked
+and removed it when checked; the expanded host rendered the same installed
+executable. Closing/deactivating left no renderer, private daemon or test server.
+The live desktop was not restarted or locked, and its original lock/selection
+preferences were restored after the isolated checks.
+
+One initial automation run hit its four-second switch deadline while software
+GL and a build were active; the harness was given more startup time and the
+remaining checks ran after the build. No Matrix Reflow crash was observed.
+XScreenSaver drops options absent from XML, so a Frame limit control was added;
+fractional XML ranges/defaults also prevent the 0..1 distortion slider from
+being interpreted as integral. No XML warnings appeared in the final run.
+
+### Bounded rendering cost
+
+`build/release/bloom-benchmark build/bloom` renders a frozen scene, warms each
+mode for three frames and measures twelve. GPU time uses GL_TIME_ELAPSED; CPU
+time uses CLOCK_PROCESS_CPUTIME_ID (including driver threads). Submission wall
+time covers the draw calls. The persistent RGBA8 output forces full-frame
+composition without X11 pixel-ownership clipping. Queries are read synchronously
+between frames; this is render-only cost, excluding simulation, swap, compositor
+and FPS pacing, not achievable application FPS. The raw mode is the iteration-2
+rendering behavior in the new binary, not a separately rebuilt old executable.
+
+| 1920x1080 mode | GPU mean | GPU max | CPU per frame | Draw submission wall |
+| --- | ---: | ---: | ---: | ---: |
+| Raw (`--no-post`) | 1.710 ms | 1.825 ms | 0.302 ms | 0.131 ms |
+| Composition, no bloom | 2.032 ms | 2.092 ms | 0.256 ms | 0.125 ms |
+| Composition + bloom .9 | 3.931 ms | 4.195 ms | 0.346 ms | 0.172 ms |
+
+Bloom adds about 1.90 ms GPU time over composition alone in this small sample.
+This does not justify an extra quality mode yet, so all five reference levels
+are retained. Their FP16 pixel storage is about 5.27 MiB at 1080p (allocation
+arithmetic, not a measured process/GPU residency value), and is released when
+bloom is unused. Default frame pacing remains 60 FPS; users can choose a lower
+Frame limit on battery. Sustained power/thermal behavior, other GPUs, physical
+multi-monitor, 4K, HDR display output and Windows visual parity remain unverified.

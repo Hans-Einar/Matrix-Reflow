@@ -24,6 +24,7 @@ int main() try {
                 std::this_thread::sleep_for(std::chrono::milliseconds(5));
             }
             check(host.width()==w && host.height()==h,"borrowed resize");
+            renderer.postprocess({true,i%2==0,.9f,.5f,8});
             renderer.resize(w,h);renderer.draw_control();check(context.present(),"borrowed presentation");
         }
         bool failed=false;try {host.resize(50,50);} catch(const std::runtime_error&) {failed=true;}
@@ -37,7 +38,8 @@ int main() try {
         X11Host host(owner.window());
         XErrorTrap lifetime(host.display());
         GlxContext context(host.display(),host.config(),host.window());
-        Renderer renderer;renderer.resize(host.width(),host.height());renderer.draw_control();
+        Renderer renderer;renderer.postprocess({true,true,.9f,.5f,8});
+        renderer.resize(host.width(),host.height());renderer.draw_control();
         XDestroyWindow(owner.display(),owner.window());XSync(owner.display(),False);owner.poll();
         // Destruction can race a frame after poll: Mesa may query geometry
         // during drawing, before the error guard inside present() is reached.

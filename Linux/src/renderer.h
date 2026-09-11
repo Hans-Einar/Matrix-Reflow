@@ -2,6 +2,8 @@
 #include "gl_resources.h"
 #include "font_atlas.h"
 #include "mmcore.h"
+#include "bloom.h"
+#include <memory>
 #include <array>
 #include <cstdint>
 #include <string>
@@ -16,18 +18,29 @@ struct RenderView {
     std::array<float, 3> fog{0,34,186};
     bool textured = true, wireframe = false, extra_contrast_heads = false;
 };
+struct PostSettings {
+    bool enabled=false, bloom=true;
+    float intensity=.9f, distortion=0, time=1.8f;
+};
 class Renderer {
 public:
     explicit Renderer(const FontAtlas& atlas = build_atlas(), bool double_buffered = true);
     void resize(int width, int height);
     void draw_control();
-    void draw_instances(const MMGlyphInstance* instances, std::size_t count, const RenderView& view);
+    void postprocess(const PostSettings& settings);
+    void bloom_level(int level); // 0 = normal scene, 1..5 = extracted diagnostic level
+    // Optional caller-owned output FBO allows uncropped offscreen measurement.
+    void draw_instances(const MMGlyphInstance* instances, std::size_t count, const RenderView& view, GLuint target=0);
     // Capture the same final composite offscreen, independent of X11 occlusion.
     // Top row first; capture target exists only for the duration of the call.
     std::vector<std::uint8_t> read_rgba();
     void write_ppm(const std::string& path);
 private:
     void begin_scene();
+    void finish_scene(GLuint target=0);
+    PostSettings post_;
+    int bloom_level_=0;
+    std::unique_ptr<Bloom> bloom_;
     void composite(GLuint target = 0);
     int width_ = 0, height_ = 0;
     GLenum output_buffer_ = GL_BACK;

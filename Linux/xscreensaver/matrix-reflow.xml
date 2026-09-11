@@ -2,17 +2,24 @@
 <screensaver name="matrix-reflow" _label="Matrix Reflow" gl="yes">
   <command arg="--root"/>
   <number id="speed" type="slider" arg="--speed %" _label="Speed"
-          _low-label="Slow" _high-label="Fast" low="0" high="1" default="0.35"/>
+          _low-label="Slow" _high-label="Fast" low="0.0" high="1.0" default="0.35"/>
   <number id="density" type="slider" arg="--density %" _label="Density"
-          _low-label="Sparse" _high-label="Dense" low="0.05" high="1" default="0.9"/>
+          _low-label="Sparse" _high-label="Dense" low="0.05" high="1.0" default="0.9"/>
   <number id="scale" type="slider" arg="--scale %" _label="Glyph size"
-          _low-label="Small" _high-label="Large" low="0.1" high="2" default="0.3"/>
+          _low-label="Small" _high-label="Large" low="0.1" high="2.0" default="0.3"/>
   <number id="depth" type="slider" arg="--depth %" _label="Depth"
-          _low-label="Flat" _high-label="Deep" low="0" high="1.5" default="0"/>
+          _low-label="Flat" _high-label="Deep" low="0.0" high="1.5" default="0.0"/>
+  <number id="fps-limit" type="spinbutton" arg="--fps-limit %"
+          _label="Frame limit" low="1" high="240" default="60"/>
+  <boolean id="bloom" _label="Bloom" arg-unset="--no-bloom"/>
+  <number id="bloom-strength" type="slider" arg="--bloom-strength %" _label="Glow strength"
+          _low-label="None" _high-label="Strong" low="0.0" high="1.0" default="0.9"/>
+  <number id="distortion" type="slider" arg="--distortion %" _label="Glass distortion"
+          _low-label="Flat" _high-label="Curved" low="0.0" high="1.0" default="0.0"/>
   <boolean id="panning" _label="Camera movement" arg-set="--panning"/>
   <boolean id="binary" _label="Binary characters" arg-set="--binary"/>
   <_description>
 Matrix Reflow: animated digital rain with the original Matrix-Code font.
-Linux OpenGL port of Delmay441/Matrix-Reflow. Bloom and CRT are planned later.
+Linux OpenGL port of Delmay441/Matrix-Reflow. Multiscale bloom and SDR composition. CRT filtering is planned later.
   </_description>
 </screensaver>

@@ -33,6 +33,8 @@ int main(int argc, char** argv) try {
     auto settings = mm_settings_default();
     std::uint64_t seed = 12345;
     double warmup = 0, duration = 0;
+    int bloom_level=0;
+    bool post_enabled=true, post_explicit=false, snapshot=false;
     int fps_limit=60; bool stats=false;
     std::string capture, dump_atlas;
     for (int i = 1; i < argc; ++i) {
@@ -42,7 +44,7 @@ int main(int argc, char** argv) try {
             return argv[i];
         };
         if (arg == "--help") {
-            std::cout << "Matrix Reflow Linux - iteration 2\n"
+            std::cout << "Matrix Reflow Linux - iteration 3\n"
                          "  --windowed           Show animated rain (default)\n"
                          "  --root               Render in XSCREENSAVER_WINDOW (never desktop root)\n"
                          "  --window-id ID       Render in a borrowed X11 window\n"
@@ -58,7 +60,13 @@ int main(int argc, char** argv) try {
                          "  --panning            Enable camera path\n"
                          "  --binary             Use 0/1 characters\n"
                          "  --seed N             Deterministic seed (1..1000000)\n"
+                         "  --snapshot-time N    Freeze at N simulated seconds (0..120), fixed clock\n"
                          "  --warmup N           Simulate 0..120 seconds before display\n"
+                         "  --bloom / --no-bloom Enable/disable glow (default on)\n"
+                         "  --bloom-strength N   Bloom intensity 0..1 (default .9)\n"
+                         "  --distortion N       Barrel/chromatic distortion 0..1 (default 0)\n"
+                         "  --no-post            Raw iteration-2 output, for comparisons\n"
+                         "  --bloom-level N      Inspect extracted bloom level 1..5\n"
                          "  --control            Display the renderer control scene\n"
                          "  --fps-limit N        Maximum FPS 1..240 (default 60)\n"
                          "  --duration N         Stop after N wall-clock seconds\n"
@@ -82,6 +90,9 @@ int main(int argc, char** argv) try {
         else if (arg == "--dump-atlas") dump_atlas = value();
         else if (arg == "--hidden") visible = false;
         else if (arg == "--fps-limit") fps_limit=number(value(),240);
+        else if (arg == "--bloom" || arg == "--no-bloom") {settings.bloom=arg=="--bloom";post_explicit=true;}
+        else if (arg == "--no-post") post_enabled=false;
+        else if (arg == "--bloom-level") bloom_level=number(value(),5);
         else if (arg == "--stats") stats=true;
         else if (arg == "--control") control = true;
         else if (arg == "--glyph-lab") lab = true;
@@ -89,12 +100,21 @@ int main(int argc, char** argv) try {
         else if (arg == "--panning") settings.panning = 1;
         else if (arg == "--binary") settings.binaryMode = 1;
         else if (arg == "--speed" || arg == "--density" || arg == "--scale" || arg == "--depth" ||
-                 arg == "--camera-speed" || arg == "--length" || arg == "--mutation" || arg == "--warmup" || arg == "--duration") {
+                 arg == "--camera-speed" || arg == "--length" || arg == "--mutation" || arg == "--warmup" || arg == "--duration" || arg == "--bloom-strength" || arg == "--distortion" || arg == "--snapshot-time") {
             const auto text=value(); double v=0;
             const auto parsed=std::from_chars(text.data(),text.data()+text.size(),v);
             if(parsed.ec!=std::errc{} || parsed.ptr!=text.data()+text.size() || !std::isfinite(v))
                 throw std::runtime_error("Invalid number for " + arg);
-            if(arg=="--speed") settings.speed=v;
+            if(arg=="--snapshot-time") {
+                if(v<0 || v>120) throw std::runtime_error("Snapshot time must be 0..120");
+                warmup=v;snapshot=true;
+            }
+            else if(arg=="--bloom-strength" || arg=="--distortion") {
+                if(v<0 || v>1) throw std::runtime_error(arg+" must be 0..1");
+                if(arg=="--bloom-strength") settings.bloomIntensity=v;else settings.crtDistort=v;
+                post_explicit=true;
+            }
+            else if(arg=="--speed") settings.speed=v;
             else if(arg=="--density") settings.density=v;
             else if(arg=="--scale") settings.glyphScale=static_cast<float>(v);
             else if(arg=="--depth") settings.depthAmount=v;
@@ -138,8 +158,10 @@ int main(int argc, char** argv) try {
     reflow::GlxContext context(host.display(), host.config(), host.window());
     std::cout << context.description() << std::endl;
     reflow::Renderer renderer(reflow::build_atlas(),context.double_buffered()); // Dies before context, which dies before host.
+    renderer.bloom_level(bloom_level);
     const auto instances = reflow::glyph_lab_instances();
     reflow::Simulation simulation(settings,static_cast<float>(host.width())/host.height(),seed);
+    if(snapshot) simulation.clock(12,0,0);
     for(int i=0;i<static_cast<int>(warmup*60);++i) simulation.advance(1.0/60);
     int last_width=host.width(),last_height=host.height();
     auto previous=std::chrono::steady_clock::now();
@@ -157,9 +179,11 @@ int main(int argc, char** argv) try {
             last_width=host.width();last_height=host.height();
         }
         const auto wall=std::time(nullptr);std::tm local{};
-        if(localtime_r(&wall,&local)) simulation.clock(local.tm_hour,local.tm_min,local.tm_sec);
-        simulation.advance(elapsed);
+        if(!snapshot && localtime_r(&wall,&local)) simulation.clock(local.tm_hour,local.tm_min,local.tm_sec);
+        if(!snapshot) simulation.advance(elapsed);
         renderer.resize(host.width(), host.height());
+        renderer.postprocess({post_enabled && (!(control||lab) || post_explicit),settings.bloom!=0,
+            static_cast<float>(settings.bloomIntensity),static_cast<float>(settings.crtDistort),simulation.view().time});
         if (control) renderer.draw_control();
         else if(lab) renderer.draw_instances(instances.data(), instances.size(), reflow::glyph_lab_view(host.width(), host.height()));
         else renderer.draw_instances(simulation.data(), simulation.count(), simulation.view());

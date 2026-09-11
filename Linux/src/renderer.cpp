@@ -6,6 +6,7 @@
 #include "glyph_fragment.h"
 #include <algorithm>
 #include <cstddef>
+#include <cmath>
 #include <fstream>
 #include <stdexcept>
 #include <utility>
@@ -93,9 +94,9 @@ void Renderer::draw_control() {
     glUseProgram(control_.get());
     glBindVertexArray(fullscreen_vao_.get());
     glDrawArrays(GL_TRIANGLES, 0, 3);
-    composite();
+    finish_scene();
 }
-void Renderer::draw_instances(const MMGlyphInstance* instances, std::size_t count, const RenderView& view) {
+void Renderer::draw_instances(const MMGlyphInstance* instances, std::size_t count, const RenderView& view, GLuint target) {
     if (!width_ || !height_) return;
     if ((!instances && count) || count > (64 * 1024 * 1024) / sizeof(MMGlyphInstance))
         throw std::runtime_error("Glyph instances exceed 64 MiB upload budget or are missing");
@@ -122,7 +123,26 @@ void Renderer::draw_instances(const MMGlyphInstance* instances, std::size_t coun
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, static_cast<GLsizei>(count));
-    composite();
+    finish_scene(target);
+}
+void Renderer::bloom_level(int level) {
+    if(level<0 || level>5) throw std::runtime_error("Bloom level must be 0..5");
+    bloom_level_=level;
+}
+void Renderer::postprocess(const PostSettings& settings) {
+    if(!std::isfinite(settings.intensity) || settings.intensity<0 || settings.intensity>1 ||
+       !std::isfinite(settings.distortion) || settings.distortion<0 || settings.distortion>1 ||
+       !std::isfinite(settings.time) || settings.time<0)
+        throw std::runtime_error("Invalid postprocessing settings");
+    post_=settings;
+}
+void Renderer::finish_scene(GLuint target) {
+    if(bloom_level_ || (post_.enabled && post_.bloom && post_.intensity>0)) {
+        if(!bloom_) bloom_=std::make_unique<Bloom>();
+        bloom_->extract(scene_.get(),width_,height_);
+        if(!bloom_level_) bloom_->accumulate();
+    } else bloom_.reset();
+    composite(target);
 }
 void Renderer::composite(GLuint target) {
     glBindFramebuffer(GL_FRAMEBUFFER, target);
@@ -131,8 +151,16 @@ void Renderer::composite(GLuint target) {
     glDisable(GL_BLEND);
     glUseProgram(composite_.get());
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, scene_.get());
+    glBindTexture(GL_TEXTURE_2D, bloom_level_ ? bloom_->level(bloom_level_-1).texture.get() : scene_.get());
     glUniform1i(composite_.uniform("scene"), 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D,bloom_ ? bloom_->level(0).texture.get() : scene_.get());
+    glUniform1i(composite_.uniform("bloom"),1);
+    glUniform1i(composite_.uniform("postEnabled"),post_.enabled && !bloom_level_);
+    const float t=std::clamp(post_.time/1.8f,0.0f,1.0f),ease=t*t*(3-2*t);
+    glUniform1f(composite_.uniform("bloomIntensity"),post_.bloom ? post_.intensity*ease : 0);
+    glUniform1f(composite_.uniform("distortion"),post_.distortion*.25f*ease);
+    glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(fullscreen_vao_.get());
     glDrawArrays(GL_TRIANGLES, 0, 3);
     check_gl("Render scene/composite");

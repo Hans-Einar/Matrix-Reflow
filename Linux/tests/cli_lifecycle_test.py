@@ -5,12 +5,15 @@ import signal
 import subprocess
 import sys
 import time
+import tempfile
+from pathlib import Path
 
 binary = sys.argv[1]
 env = dict(os.environ)
 env.pop('XSCREENSAVER_WINDOW', None)
 for args in [
-    ['--speed', 'nan'], ['--density', '0'], ['--scale', '1e300'],
+    ['--snapshot-time','121'], ['--snapshot-time','nan'], ['--bloom-strength','nan'], ['--bloom-strength','1.1'], ['--distortion','-1'],
+    ['--bloom-level','6'], ['--speed', 'nan'], ['--density', '0'], ['--scale', '1e300'],
     ['--depth', '-1'], ['--fps-limit', '0'], ['--fps-limit', '241'],
     ['--duration', '0'], ['--duration', 'inf'], ['--duration'],
     ['--size', '0x10'], ['--unknown'], ['--root'],
@@ -41,3 +44,14 @@ finally:
         process.kill()
         process.wait()
 print('CLI bounds, stale host environment, FPS cap, duration and SIGTERM passed')
+
+with tempfile.TemporaryDirectory() as directory:
+    captures = []
+    for frame in ('1', '3'):
+        path = Path(directory) / (frame + '.ppm')
+        subprocess.run([binary, '--windowed', '--hidden', '--size', '160x90',
+                        '--snapshot-time', '8', '--frames', frame, '--capture', str(path)],
+                       env=env, check=True, capture_output=True, timeout=5)
+        captures.append(path.read_bytes())
+    assert captures[0] == captures[1], 'Snapshot animation or wall clock changed between frames'
+print('Fixed-time snapshots are deterministic across render frames')
