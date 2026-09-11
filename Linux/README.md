@@ -90,7 +90,7 @@ matrix-reflow --no-post
 `--no-bloom` disables glow while retaining the reference vignette/edge treatment.
 `--no-post` gives raw iteration-2 output. Distortion defaults to zero; bloom and
 distortion ease in over 1.8 seconds. The diagnostic control/glyph scenes stay raw
-unless you explicitly request a bloom/distortion option. `--bloom-level 1..5`
+unless you explicitly request a bloom, distortion or CRT option. `--bloom-level 1..5`
 shows extraction before upsampling, at half resolution down to 1/32 resolution.
 
 For reproducible captures, use `--snapshot-time 8 --seed 12345 --frames 1` with
