@@ -70,3 +70,5 @@ remain unverified. Bloom, CRT and the full settings tool are still pending.
 * Shared typed settings schema, version-1 GLib INI storage and five named profile slots.
 * Private atomic saves, strict validation and display-independent effective-settings output.
 * Defaults → saved profile → explicit arguments; CLI never writes profiles.
+* Schema-generated CLI help and complete positive/negative switches, including RGB channels.
+* XScreenSaver profile selection and explicit-default mode, with checked numeric/boolean controls.

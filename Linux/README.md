@@ -140,3 +140,52 @@ scene uses premultiplied blending and an opaque final composite. Font mipmaps
 stop at level 3 to retain integral cell boundaries. Native Wayland and screen
 locking/authentication are outside this port. See [iteration 2 validation](validation.md#i2-m4)
 for hardware coverage, preview checks and the deliberately shortened stability run.
+
+## Profiles and command-line settings
+
+`matrix-reflow` loads the active saved profile, then applies explicit arguments.
+`--profile 1` through `--profile 5` choose stable slots regardless of their names.
+`--profile 0` or `--no-config` uses built-in defaults without reading the file.
+`--no-config` conflicts with a nonzero profile. Argument position does not change
+precedence; repeated individual switches use the last value. CLI never saves.
+
+Profiles use version-1 GLib INI at `$XDG_CONFIG_HOME/matrix-reflow/settings.ini`
+(or `~/.config/matrix-reflow/settings.ini`). Missing files use defaults; malformed
+values and unsupported versions produce an error instead of silently replacing
+settings. Saves atomically replace the file with private permissions. Keep a
+backup before manually editing; simultaneous editors currently use last save wins.
+
+```sh
+matrix-reflow --profile 2 --crt --fps-limit 30
+matrix-reflow --no-config --main-red 0.05 --main-green 0.85 --main-blue 0.25
+matrix-reflow --profile 2 --print-effective-settings
+matrix-reflow --help
+```
+
+Help is generated from the shared schema and includes every supported setting,
+range and default. Each boolean has both `--NAME` and `--no-NAME`. Colors use
+separate `--main-red/green/blue` and `--glitch-red/green/blue` channels, each 0..1.
+Effective-settings output lists the base profile, explicit overrides and resolved
+values without opening a display. Raw-rendering diagnostics (`--no-post`, control,
+glyph lab, snapshot time and identity CRT) remain per-run CLI options, not profiles.
+
+XScreenSaver has two modes in its profile selector:
+
+* **Saved active profile (GTK)** or **Saved profile 1..5**: leave its other controls
+  at their defaults and configure in `matrix-reflow-settings`. Those controls show
+  built-in defaults, not the profile's loaded values. Nondefault controls generate
+  explicit CLI overrides. Clear old overrides when switching to profile mode.
+* **Built-in defaults + controls below**: emits `--profile 0`; XScreenSaver's controls
+  now describe the effective settings independently of saved profiles. For custom
+  colors use profile mode or explicit CLI channel arguments.
+
+XScreenSaver discards arguments not described by its XML when saving its dialog;
+therefore use GTK for color profiles rather than manually adding RGB switches to
+that dialog's command. Numeric/boolean XML controls have checked CLI-compatible
+bounds and defaults. `--print-effective-settings` on the resulting command helps
+explain overrides.
+
+The ineffective upstream `waves` toggle is intentionally absent. Real display HDR,
+Windows battery policy, and an on-screen FPS overlay are not implemented; use the
+Linux FPS cap and `--stats`. Existing reference clock easter eggs, glyph flips,
+wireframe, texture, fog, camera, gaps, bright heads, bloom and CRT are configurable.

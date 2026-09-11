@@ -1,26 +1,45 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <screensaver name="matrix-reflow" _label="Matrix Reflow" gl="yes">
-  <command arg="--root"/>
-  <number id="speed" type="slider" arg="--speed %" _label="Speed"
-          _low-label="Slow" _high-label="Fast" low="0.0" high="1.0" default="0.35"/>
-  <number id="density" type="slider" arg="--density %" _label="Density"
-          _low-label="Sparse" _high-label="Dense" low="0.05" high="1.0" default="0.9"/>
-  <number id="scale" type="slider" arg="--scale %" _label="Glyph size"
-          _low-label="Small" _high-label="Large" low="0.1" high="2.0" default="0.3"/>
-  <number id="depth" type="slider" arg="--depth %" _label="Depth"
-          _low-label="Flat" _high-label="Deep" low="0.0" high="1.5" default="0.0"/>
-  <number id="fps-limit" type="spinbutton" arg="--fps-limit %"
-          _label="Frame limit" low="1" high="240" default="60"/>
-  <boolean id="crt" _label="CRT emulation" arg-set="--crt"/>
-  <boolean id="bloom" _label="Bloom" arg-unset="--no-bloom"/>
-  <number id="bloom-strength" type="slider" arg="--bloom-strength %" _label="Glow strength"
-          _low-label="None" _high-label="Strong" low="0.0" high="1.0" default="0.9"/>
-  <number id="distortion" type="slider" arg="--distortion %" _label="Glass distortion"
-          _low-label="Flat" _high-label="Curved" low="0.0" high="1.0" default="0.0"/>
-  <boolean id="panning" _label="Camera movement" arg-set="--panning"/>
-  <boolean id="binary" _label="Binary characters" arg-set="--binary"/>
-  <_description>
-Matrix Reflow: animated digital rain with the original Matrix-Code font.
-Linux OpenGL port of Delmay441/Matrix-Reflow. Multiscale bloom and SDR composition. Optional CRT emulation.
-  </_description>
+  <command arg="--root" />
+  <select id="profile">
+    <option id="active" _label="Saved active profile (GTK)" />
+    <option id="defaults" _label="Built-in defaults + controls below" arg-set="--profile 0" />
+    <option id="profile1" _label="Saved profile 1" arg-set="--profile 1" />
+    <option id="profile2" _label="Saved profile 2" arg-set="--profile 2" />
+    <option id="profile3" _label="Saved profile 3" arg-set="--profile 3" />
+    <option id="profile4" _label="Saved profile 4" arg-set="--profile 4" />
+    <option id="profile5" _label="Saved profile 5" arg-set="--profile 5" />
+  </select>
+  <hgroup>
+    <vgroup>
+      <number id="speed" type="spinbutton" arg="--speed %" _label="Speed" low="0.0" high="1.0" default="0.35" />
+      <number id="density" type="spinbutton" arg="--density %" _label="Density" low="0.05" high="1.0" default="0.9" />
+      <number id="scale" type="spinbutton" arg="--scale %" _label="Glyph size" low="0.1" high="2.0" default="0.3" />
+      <number id="length" type="spinbutton" arg="--length %" _label="Length bias" low="0.0" high="1.0" default="0.25" />
+      <number id="mutation" type="spinbutton" arg="--mutation %" _label="Mutation rate" low="0.0" high="1.0" default="0.1" />
+      <boolean id="binary" _label="Binary characters" arg-set="--binary" />
+      <boolean id="column-gaps" _label="Column gaps" arg-unset="--no-column-gaps" />
+      <boolean id="flip-x" _label="Horizontal glyph flips" arg-unset="--no-flip-x" />
+      <boolean id="flip-y" _label="Vertical glyph flips" arg-unset="--no-flip-y" />
+      <boolean id="easter-eggs" _label="Clock easter eggs" arg-unset="--no-easter-eggs" />
+      <number id="depth" type="spinbutton" arg="--depth %" _label="Depth" low="0.0" high="1.5" default="0.0" />
+    </vgroup>
+    <vgroup>
+      <boolean id="panning" _label="Camera movement" arg-set="--panning" />
+      <number id="camera-speed" type="spinbutton" arg="--camera-speed %" _label="Camera speed" low="0.0" high="1.0" default="1.0" />
+      <boolean id="fog" _label="Depth fog" arg-unset="--no-fog" />
+      <boolean id="textured" _label="Textured glyphs" arg-unset="--no-textured" />
+      <boolean id="wireframe" _label="Wireframe" arg-set="--wireframe" />
+      <boolean id="extra-contrast-heads" _label="Bright heads" arg-set="--extra-contrast-heads" />
+      <boolean id="bloom" _label="Bloom" arg-unset="--no-bloom" />
+      <number id="bloom-strength" type="spinbutton" arg="--bloom-strength %" _label="Bloom strength" low="0.0" high="1.0" default="0.9" />
+      <boolean id="crt" _label="CRT emulation" arg-set="--crt" />
+      <number id="distortion" type="spinbutton" arg="--distortion %" _label="Glass distortion" low="0.0" high="1.0" default="0.0" />
+      <number id="fps-limit" type="spinbutton" arg="--fps-limit %" _label="Frame limit" low="1" high="240" default="60" />
+    </vgroup>
+  </hgroup>
+  <_description>Matrix Reflow: OpenGL digital rain with bloom and CRT.
+For saved colors and profiles, use matrix-reflow-settings and leave the controls here at their defaults. These controls show built-in defaults, not loaded profile values. Any generated arguments override the saved profile.
+Choose “Built-in defaults + controls below” for independent XScreenSaver configuration. Color choosers are in matrix-reflow-settings; CLI also accepts main/glitch RGB channels from 0 to 1.
+</_description>
 </screensaver>

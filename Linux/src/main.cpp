@@ -54,27 +54,13 @@ int main(int argc, char** argv) try {
                          "  --window-id ID       Render in a borrowed X11 window\n"
                          "  --size WIDTHxHEIGHT  Window size, each dimension 1..16384\n"
                          "  --glyph-lab          Static font/flip demonstration\n"
-                         "  --speed N            Rain speed 0..1 (default .35)\n"
-                         "  --density N          Density .05..1 (default .9)\n"
-                         "  --scale N            Glyph scale .1..2 (default .3)\n"
-                         "  --depth N            Depth 0..1.5 (default 0)\n"
-                         "  --camera-speed N     Camera speed 0..1\n"
-                         "  --length N           Length bias 0..1\n"
-                         "  --mutation N         Mutation rate 0..1\n"
-                         "  --panning            Enable camera path\n"
-                         "  --binary             Use 0/1 characters\n"
                          "  --seed N             Deterministic seed (1..1000000)\n"
                          "  --snapshot-time N    Freeze at N simulated seconds (0..120), fixed clock\n"
                          "  --warmup N           Simulate 0..120 seconds before display\n"
-                         "  --bloom / --no-bloom Enable/disable glow (default on)\n"
-                         "  --bloom-strength N   Bloom intensity 0..1 (default .9)\n"
-                         "  --distortion N       Barrel/chromatic distortion 0..1 (default 0)\n"
-                         "  --crt / --no-crt     CRT filter (default off)\n"
                          "  --crt-identity       Diagnostic identity pass through CRT target\n"
                          "  --no-post            Raw iteration-2 output, for comparisons\n"
                          "  --bloom-level N      Inspect extracted bloom level 1..5\n"
                          "  --control            Display the renderer control scene\n"
-                         "  --fps-limit N        Maximum FPS 1..240 (default 60)\n"
                          "  --duration N         Stop after N wall-clock seconds\n"
                          "  --stats              Report interval FPS and frame work time\n"
                          "  --frames N           Exit after N frames (default: until closed)\n"
@@ -83,6 +69,19 @@ int main(int argc, char** argv) try {
                          "  --dump-atlas FILE.pgm Rasterize font and exit; no display needed\n"
                          "  --version            Print version\n"
                          "Escape closes owned windows. The host controls borrowed windows.\n";
+            std::cout << "\nProfiles (defaults -> saved profile -> explicit switches):\n"
+                         "  --profile 0..5       0: defaults; 1..5: saved slot (default: active slot)\n"
+                         "  --no-config          Use built-in defaults without reading a file\n"
+                         "  --print-effective-settings  Print resolved values without opening X11\n"
+                         "Settings file: " << reflow::settings_path() << "\n\nSettings:\n";
+            const reflow::Settings defaults;
+            for(const auto& f:reflow::setting_fields()) {
+                std::cout<<"  --"<<f.key;
+                if(f.type==reflow::FieldType::Boolean) std::cout<<" / --no-"<<f.key;
+                else std::cout<<" N";
+                std::cout<<"  "<<f.label<<" ["<<reflow::setting_number(f.low)<<".."<<reflow::setting_number(f.high)
+                         <<"] (default "<<reflow::setting_number(f.get(defaults))<<")\n";
+            }
             return 0;
         } else if (arg == "--version") { std::cout << "Matrix Reflow Linux 0.1.0\n"; return 0; }
         else if (arg == "--size") {

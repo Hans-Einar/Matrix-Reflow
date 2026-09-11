@@ -370,3 +370,11 @@ in 0.26 s: all schema boundaries, nonfinite/malformed values, five-profile and
 float-color round trips, file mode 0600, failed-save preservation, future-version
 rejection, absent-file defaults and order-independent profile/CLI precedence.
 Tests use temporary XDG directories and never touch real user profiles.
+
+## I5-M2 — CLI and XScreenSaver mapping
+
+Three settings tests passed in 0.35 s. The XML test compares all numeric bounds
+and defaults to schema-generated help, invokes every numeric endpoint/default and
+boolean argument through the real CLI, and checks all supported non-color fields
+are represented. Profile/default modes and XML color limitations are documented.
+Actual GTK/XScreenSaver UI and rendering checks follow in M3/M4.

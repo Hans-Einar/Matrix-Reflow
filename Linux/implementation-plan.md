@@ -392,7 +392,7 @@ bruker standarder. CLI-overstyringer endrer ikke lagret profil. Legg til
 
 Commit: `feat(linux): I5-M1 add validated settings and versioned profiles`.
 
-### [ ] I5-M2 — Full CLI og XScreenSaver-innstillinger
+### [x] I5-M2 — Full CLI og XScreenSaver-innstillinger
 
 Leveranse: fullfør `--help` og XML-kontroller for de innstillingene XScreenSavers
 GUI kan uttrykke godt. Kartlegg hastighet, tetthet, størrelse, lengde, dybde,
