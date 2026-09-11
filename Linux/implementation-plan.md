@@ -372,7 +372,7 @@ Sluttresultat: full CLI/XML-konfigurasjon og en enkel GTK-app med fargevalg og
 fem brukerprofiler. GTK-verktøyet er et valgfritt byggtarget; rendereren trenger
 ikke GTK for å kjøre. Denne planen inkluderer GTK-arbeidet som studien estimerte separat.
 
-### [ ] I5-M1 — Felles innstillingsmodell og lagring
+### [x] I5-M1 — Felles innstillingsmodell og lagring
 
 Leveranse: én modell med typer, standarder, gyldige intervaller og mapping til
 `MMSettings`, renderer og vert. Bruk prosjektets standarder, med midlertidige

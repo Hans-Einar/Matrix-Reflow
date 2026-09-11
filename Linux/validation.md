@@ -362,3 +362,11 @@ No new quality setting or permanent history buffer was introduced. These results
 do not establish sustained FPS, battery drain, thermal behavior or Windows visual
 parity. 4K, physical multi-monitor, suspend/resume, other GPUs and real HDR output
 remain unverified. Full configuration/profile tooling is still iteration 5.
+
+## I5-M1 — Settings and profiles
+
+Release build with two jobs passed. `settings-test` and `settings-cli-test` passed
+in 0.26 s: all schema boundaries, nonfinite/malformed values, five-profile and
+float-color round trips, file mode 0600, failed-save preservation, future-version
+rejection, absent-file defaults and order-independent profile/CLI precedence.
+Tests use temporary XDG directories and never touch real user profiles.

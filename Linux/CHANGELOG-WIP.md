@@ -64,3 +64,9 @@ remain unverified. Bloom, CRT and the full settings tool are still pending.
 * Short 1080p checks measured 5.78 ms GPU time with bloom and CRT, with a lazy
   15.82 MiB CRT intermediate. No long battery-draining tests were run.
 * Added comparison captures, CLI/identity checks and expanded-preview validation.
+
+## Iteration 5
+
+* Shared typed settings schema, version-1 GLib INI storage and five named profile slots.
+* Private atomic saves, strict validation and display-independent effective-settings output.
+* Defaults → saved profile → explicit arguments; CLI never writes profiles.
