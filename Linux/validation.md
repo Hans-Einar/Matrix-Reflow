@@ -378,3 +378,23 @@ and defaults to schema-generated help, invokes every numeric endpoint/default an
 boolean argument through the real CLI, and checks all supported non-color fields
 are represented. Profile/default modes and XML color limitations are documented.
 Actual GTK/XScreenSaver UI and rendering checks follow in M3/M4.
+
+## I5-M3 — GTK settings and preview lifecycle
+
+Four settings/preview tests passed in 1.78 s. Preview tests verify literal arguments
+(including shell metacharacters), natural child exit/reaping, spawn failure,
+TERM-resistant child cleanup within two seconds and survival of an unrelated child.
+The optional GTK integration test passed on private 1280×800 Xvfb with software GLX:
+all five names/values survive save/restart; a custom `#33CC66` color and unsaved speed
+reach the real preview argv, whose resolved CLI values exactly equal the saved
+profile. Preview does not create a file. Stop and settings exit remove only their
+own child, while an independent real renderer stays alive. Screenshots were inspected:
+color editor, grouped settings and visible animated rain. No live pointer or screen
+lock was used. GUI initialization/spawn diagnostics were clean. Initial test attempts
+selected hidden GTK palette controls; direct-editor mode and an entry activation
+made the color test exercise the visible editor correctly.
+
+A fresh Release renderer-only build with `REFLOW_GTK_SETTINGS=OFF` passed;
+`ldd matrix-reflow` has GLib but no GTK/GDK libraries. Default window height was
+increased after visual inspection to make more Rain controls visible; the content
+remains scrollable on smaller displays. Installed-layout verification follows in M4.

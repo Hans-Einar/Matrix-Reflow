@@ -72,3 +72,5 @@ remain unverified. Bloom, CRT and the full settings tool are still pending.
 * Defaults → saved profile → explicit arguments; CLI never writes profiles.
 * Schema-generated CLI help and complete positive/negative switches, including RGB channels.
 * XScreenSaver profile selection and explicit-default mode, with checked numeric/boolean controls.
+* Optional GTK 3 app with grouped controls, direct color editor and five named profiles.
+* Unsaved preview snapshots share the renderer; bounded cleanup affects only the owned child.

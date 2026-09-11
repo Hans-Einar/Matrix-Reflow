@@ -407,7 +407,7 @@ bli ignorert uten at den effektive konfigurasjonen forklarer hvorfor.
 
 Commit: `feat(linux): I5-M2 complete CLI and XScreenSaver configuration`.
 
-### [ ] I5-M3 — GTK-verktøy med fem profiler og fargevalg
+### [x] I5-M3 — GTK-verktøy med fem profiler og fargevalg
 
 Leveranse: `matrix-reflow-settings` som GTK 3-app, felles validering/lagring,
 oversiktlige innstillingsgrupper, fargevelgere, fem navngitte brukerprofiler,

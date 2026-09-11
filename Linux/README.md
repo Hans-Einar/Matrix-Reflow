@@ -189,3 +189,29 @@ The ineffective upstream `waves` toggle is intentionally absent. Real display HD
 Windows battery policy, and an on-screen FPS overlay are not implemented; use the
 Linux FPS cap and `--stats`. Existing reference clock easter eggs, glyph flips,
 wireframe, texture, fog, camera, gaps, bright heads, bloom and CRT are configurable.
+
+## GTK settings tool
+
+Run `matrix-reflow-settings`. Rain, Scene and Effects tabs share sliders/spin
+buttons and switches from the CLI schema. Colors opens GTK's color editor directly.
+Five slots can be named freely (1–128 UTF-8 bytes). Changing the active slot keeps
+unsaved edits to the other slots in memory. **Save profiles** writes all five and
+makes the selected slot the default for subsequent renderer starts. **Reset profile**
+resets only the current slot's values, keeps its name, and requires Save to persist.
+
+**Preview** starts the same renderer in its own window using a complete snapshot
+of current choices, including unsaved colors. It neither changes the file nor
+reconfigures an already running screen saver. A second Preview replaces the first;
+Stop preview, Escape in the preview, or closing settings cleans up that child.
+Closing with unsaved edits offers Save, Discard or Cancel. SIGTERM/SIGINT exit and
+discard unsaved edits while cleaning up the preview. Other renderer processes and
+XScreenSaver are never signalled. A stopped child is reaped before its PID is reused.
+
+The GUI requires GTK 3 development files at build time (`gtk3-devel` on AlmaLinux).
+Use `-DREFLOW_GTK_SETTINGS=OFF` for a renderer-only build; GLib remains required,
+but the renderer has no GTK linkage. The optional integration test uses private
+Xvfb, temporary profiles and AT-SPI on the session bus, without moving the pointer:
+
+```sh
+/usr/bin/python3 Linux/tests/settings_gui_test.py build/linux build/gui-check
+```
