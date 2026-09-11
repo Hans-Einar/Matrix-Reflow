@@ -93,7 +93,7 @@ int main(int argc, char** argv) try {
         else if (arg == "--hidden") visible = false;
         else if (arg == "--fps-limit") fps_limit=number(value(),240);
         else if (arg == "--bloom" || arg == "--no-bloom") {settings.bloom=arg=="--bloom";post_explicit=true;}
-        else if (arg == "--crt" || arg == "--no-crt") {settings.crtEmulation=arg=="--crt";post_explicit=true;}
+        else if (arg == "--crt" || arg == "--no-crt") {settings.crtEmulation=arg=="--crt";crt_identity=false;post_explicit=true;}
         else if (arg == "--crt-identity") {settings.crtEmulation=1;crt_identity=true;post_explicit=true;}
         else if (arg == "--no-post") post_enabled=false;
         else if (arg == "--bloom-level") bloom_level=number(value(),5);

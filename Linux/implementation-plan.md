@@ -1,6 +1,6 @@
 # Implementasjonsplan: Matrix-Reflow for Linux
 
-Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 3 er merget; iterasjon 4 pågår, I4-M1 er passert.
+Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 3 er merget; iterasjon 4 pågår, I4-M1–M2 er passert.
 Grunnlag: [portstudien](study.md), upstream-revisjon
 `2577d25f747d629a08e19cd5ad44c9e1b4609002` og brukerens ønskede iterasjonsrekkefølge.
 Repository: `Hans-Einar/Matrix-Reflow`. Målplattform: AlmaLinux 10.2, X11,
@@ -340,7 +340,7 @@ en ubrukt fullstor CRT-tekstur. HDR-sceneformat skal ikke forveksles med skjerm-
 
 Commit: `feat(linux): I4-M1 add optional CRT render target and bypass`.
 
-### [ ] I4-M2 — Oversett CRT-filteret
+### [x] I4-M2 — Oversett CRT-filteret
 
 Leveranse: scanlines, RGB-maskemønster, horisontal utjevning, kanalavvik,
 sortnivå, høylysbehandling og vignett fra HLSL. Bruk fysiske outputpiksler og en

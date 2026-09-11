@@ -15,7 +15,7 @@ void CrtPass::resize(int width,int height) {
         throw std::runtime_error("Invalid CRT target dimensions");
     input_=std::make_unique<Bloom::Level>(width,height);
 }
-void CrtPass::draw(GLuint target,GLenum output_buffer,float,bool) {
+void CrtPass::draw(GLuint target,GLenum output_buffer,float time,bool identity) {
     if(!input_ || target==input_->framebuffer.get()) throw std::runtime_error("Invalid CRT output/texture feedback");
     glBindFramebuffer(GL_FRAMEBUFFER,target);
     glDrawBuffer(target?GL_COLOR_ATTACHMENT0:output_buffer);
@@ -25,6 +25,9 @@ void CrtPass::draw(GLuint target,GLenum output_buffer,float,bool) {
     glUseProgram(program_.get());
     glActiveTexture(GL_TEXTURE0);glBindTexture(GL_TEXTURE_2D,input_->texture.get());
     glUniform1i(program_.uniform("source"),0);
+    glUniform2f(program_.uniform("resolution"),input_->width,input_->height);
+    glUniform1f(program_.uniform("time"),time);
+    glUniform1i(program_.uniform("identity"),identity);
     glBindVertexArray(vao_.get());glDrawArrays(GL_TRIANGLES,0,3);
     check_gl("CRT output");
 }

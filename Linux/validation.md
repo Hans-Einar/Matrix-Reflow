@@ -283,3 +283,21 @@ level because of extra FP16 rounding. Repeated capture does not compound effects
 `--crt`/`--no-crt` and the XML checkbox are wired; `--crt-identity` retains a
 regression diagnostic for later filter work. CRT defaults off. The intermediate
 is an internal HDR texture, not HDR display output.
+
+## I4-M2
+
+2026-09-11: CRT filter/reference and lifecycle tests passed on Intel HD 620 in
+0.47 seconds. The shader ports the HLSL RGB mask, five-tap horizontal bleed,
+red/blue convergence offsets, line ripple, black lift, soft highlight knee and
+vignette. CPU-reference checks cover neutral fields, an HDR bright column and
+asymmetric colored edges at two times and sizes 1x1, 31x17, 128x96 and 681x382,
+with at most two 8-bit levels of tolerance. Alpha remains 255.
+
+The pattern uses output-pixel centers; GL y is reflected through output height
+to match top-left HLSL SV_Position. Sampling stays in native GL UV orientation.
+This keeps the pattern independent of camera and barrel-warped scene UVs. No
+history texture, new persistence model, gamma pass or glyph shader change was
+introduced. The original HLSL two-pixel scanline envelope evaluates to its maximum
+at both pixel centers: visible line variation comes from the sine ripple and RGB
+mask. That reference behavior is deliberately retained, not silently redesigned.
+The identity diagnostic remains available for checking the intermediate/bypass.

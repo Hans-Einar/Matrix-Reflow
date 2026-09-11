@@ -56,3 +56,6 @@ remain unverified. Bloom, CRT and the full settings tool are still pending.
 
 * Optional full-size CRT intermediate and shared final-output routing, with
   on-demand allocation, immediate release on disable and identity diagnostics.
+* Reference CRT RGB mask, horizontal phosphor spread, channel convergence,
+  line ripple, lifted black level, highlight rolloff and vignette. The mask
+  uses top-left output-pixel coordinates, independent of scene/camera motion.
