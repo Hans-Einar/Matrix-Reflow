@@ -1,6 +1,6 @@
 # Implementasjonsplan: Matrix-Reflow for Linux
 
-Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 2 pågår, I2-M1–M3 er passert.
+Dato: 11. september 2026. Status: iterasjon 1 er merget; I2-M1–M4 er passert, og iterasjon 2 er klar for merge.
 Grunnlag: [portstudien](study.md), upstream-revisjon
 `2577d25f747d629a08e19cd5ad44c9e1b4609002` og brukerens ønskede iterasjonsrekkefølge.
 Repository: `Hans-Einar/Matrix-Reflow`. Målplattform: AlmaLinux 10.2, X11,
@@ -250,7 +250,7 @@ Dokumenter hvilken installasjon som ble brukt og hvordan oppføringen fjernes.
 
 Commit: `feat(linux): I2-M3 integrate XScreenSaver registration and preview`.
 
-### [ ] I2-M4 — Stabiliser første kjørbare skjermsparer
+### [x] I2-M4 — Stabiliser første kjørbare skjermsparer
 
 Leveranse: ryddig SIGTERM/vindusavslutning, pausehåndtering, frame pacing,
 grunnleggende `--help` og feilmeldinger. Valider grenser for rendererens CLI-valg.

@@ -1,6 +1,7 @@
 #include "x11_host.h"
 #include "glx_context.h"
 #include "renderer.h"
+#include "x11_error.h"
 #include <chrono>
 #include <thread>
 #include <iostream>
@@ -34,9 +35,13 @@ int main() try {
     check(name && std::string(name)=="host sentinel","borrower changed title");XFree(name);
     {
         X11Host host(owner.window());
+        XErrorTrap lifetime(host.display());
         GlxContext context(host.display(),host.config(),host.window());
         Renderer renderer;renderer.resize(host.width(),host.height());renderer.draw_control();
         XDestroyWindow(owner.display(),owner.window());XSync(owner.display(),False);owner.poll();
+        // Destruction can race a frame after poll: Mesa may query geometry
+        // during drawing, before the error guard inside present() is reached.
+        renderer.draw_control();
         bool alive=true;
         for(int n=0;n<100 && alive;++n) {alive=host.poll();std::this_thread::sleep_for(std::chrono::milliseconds(2));}
         check(!alive,"host destruction not noticed");

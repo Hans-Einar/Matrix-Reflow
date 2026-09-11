@@ -28,3 +28,12 @@ At this milestone, animated rendering and XScreenSaver integration were still pe
 * XScreenSaver XML, configurable install paths and an idempotent registration helper
   add the effect to the existing list without replacing other preferences.
 * Actual embedded and expanded XScreenSaver previews show animated font rain.
+* A default 60 FPS cap, bounded diagnostic runs and frame statistics make CPU use
+  and pacing measurable; long pauses do not trigger unbounded catch-up.
+* Drawable-loss handling now covers driver requests during drawing and GL teardown,
+  including XScreenSaver removing a full-screen host during deactivation.
+* CLI bounds, stale host environments and SIGTERM are covered by executable tests.
+
+The planned 30-minute run was stopped at the user's request on battery. Short
+checks passed; long-term memory stability and physical multi-monitor behavior
+remain unverified. Bloom, CRT and the full settings tool are still pending.

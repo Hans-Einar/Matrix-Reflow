@@ -5,6 +5,7 @@
 #include <ctime>
 #include "renderer.h"
 #include "x11_host.h"
+#include "x11_error.h"
 #include <charconv>
 #include <chrono>
 #include <cmath>
@@ -31,7 +32,8 @@ int main(int argc, char** argv) try {
     Window window_id=0;
     auto settings = mm_settings_default();
     std::uint64_t seed = 12345;
-    double warmup = 0;
+    double warmup = 0, duration = 0;
+    int fps_limit=60; bool stats=false;
     std::string capture, dump_atlas;
     for (int i = 1; i < argc; ++i) {
         const std::string arg = argv[i];
@@ -58,6 +60,9 @@ int main(int argc, char** argv) try {
                          "  --seed N             Deterministic seed (1..1000000)\n"
                          "  --warmup N           Simulate 0..120 seconds before display\n"
                          "  --control            Display the renderer control scene\n"
+                         "  --fps-limit N        Maximum FPS 1..240 (default 60)\n"
+                         "  --duration N         Stop after N wall-clock seconds\n"
+                         "  --stats              Report interval FPS and frame work time\n"
                          "  --frames N           Exit after N frames (default: until closed)\n"
                          "  --capture FILE.ppm   Save one frame (last with --frames, otherwise first)\n"
                          "  --hidden             Leave own X11 window unmapped for tests\n"
@@ -76,13 +81,15 @@ int main(int argc, char** argv) try {
         else if (arg == "--capture") capture = value();
         else if (arg == "--dump-atlas") dump_atlas = value();
         else if (arg == "--hidden") visible = false;
+        else if (arg == "--fps-limit") fps_limit=number(value(),240);
+        else if (arg == "--stats") stats=true;
         else if (arg == "--control") control = true;
         else if (arg == "--glyph-lab") lab = true;
         else if (arg == "--seed") seed = static_cast<std::uint64_t>(number(value(),1000000));
         else if (arg == "--panning") settings.panning = 1;
         else if (arg == "--binary") settings.binaryMode = 1;
         else if (arg == "--speed" || arg == "--density" || arg == "--scale" || arg == "--depth" ||
-                 arg == "--camera-speed" || arg == "--length" || arg == "--mutation" || arg == "--warmup") {
+                 arg == "--camera-speed" || arg == "--length" || arg == "--mutation" || arg == "--warmup" || arg == "--duration") {
             const auto text=value(); double v=0;
             const auto parsed=std::from_chars(text.data(),text.data()+text.size(),v);
             if(parsed.ec!=std::errc{} || parsed.ptr!=text.data()+text.size() || !std::isfinite(v))
@@ -94,6 +101,7 @@ int main(int argc, char** argv) try {
             else if(arg=="--camera-speed") settings.cameraSpeed=v;
             else if(arg=="--length") settings.lengthBias=v;
             else if(arg=="--mutation") settings.mutationRate=v;
+            else if(arg=="--duration") { if(v<=0 || v>86400) throw std::runtime_error("Duration must be 0..86400 seconds");duration=v; }
             else { if(v<0 || v>120) throw std::runtime_error("Warmup must be 0..120"); warmup=v; }
         }
         else if (arg == "--windowed") windowed=true;
@@ -124,17 +132,24 @@ int main(int argc, char** argv) try {
     std::signal(SIGTERM, stop);
     auto host_ptr=window_id ? std::make_unique<reflow::X11Host>(window_id) : std::make_unique<reflow::X11Host>(width,height,visible);
     auto& host=*host_ptr;
+    // Drivers can query the drawable during drawing and resource destruction,
+    // not just swap. Keep this alive until all GL objects have been released.
+    reflow::XErrorTrap graphics_errors(host.display());
     reflow::GlxContext context(host.display(), host.config(), host.window());
-    std::cout << context.description() << '\n';
+    std::cout << context.description() << std::endl;
     reflow::Renderer renderer(reflow::build_atlas(),context.double_buffered()); // Dies before context, which dies before host.
     const auto instances = reflow::glyph_lab_instances();
     reflow::Simulation simulation(settings,static_cast<float>(host.width())/host.height(),seed);
     for(int i=0;i<static_cast<int>(warmup*60);++i) simulation.advance(1.0/60);
     int last_width=host.width(),last_height=host.height();
     auto previous=std::chrono::steady_clock::now();
-    int rendered = 0;
+    const auto started=previous;auto interval_started=previous;
+    int rendered = 0,interval_frames=0;double interval_work=0,max_work=0;
     while (!stopped && host.poll() && (!frames || rendered < frames)) {
-        const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(16);
+        const auto frame_start=std::chrono::steady_clock::now();
+        if(duration>0 && std::chrono::duration<double>(frame_start-started).count()>=duration) break;
+        const auto deadline=frame_start+std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(1.0/fps_limit));
+        if(host.width()<1 || host.height()<1) { std::this_thread::sleep_until(deadline);continue; }
         const auto now=std::chrono::steady_clock::now();
         const double elapsed=std::chrono::duration<double>(now-previous).count();previous=now;
         if(last_width!=host.width() || last_height!=host.height()) {
@@ -150,9 +165,21 @@ int main(int argc, char** argv) try {
         else renderer.draw_instances(simulation.data(), simulation.count(), simulation.view());
         ++rendered;
         if (!capture.empty() && (frames ? rendered == frames : rendered == 1)) renderer.write_ppm(capture);
-        if(!context.present()) break;
+        if(!context.present() || graphics_errors.error()) break;
+        const auto ended=std::chrono::steady_clock::now();
+        const double work=std::chrono::duration<double,std::milli>(ended-frame_start).count();
+        ++interval_frames;interval_work+=work;max_work=std::max(max_work,work);
+        const double interval=std::chrono::duration<double>(ended-interval_started).count();
+        if(stats && interval>=5) {
+            std::cout<<"stats seconds="<<std::chrono::duration<double>(ended-started).count()
+                     <<" frames="<<rendered<<" fps="<<interval_frames/interval
+                     <<" mean_work_ms="<<interval_work/interval_frames<<" max_work_ms="<<max_work
+                     <<" instances="<<simulation.count()<<" dropped_seconds="<<simulation.dropped_time()<<std::endl;
+            interval_started=ended;interval_frames=0;interval_work=0;max_work=0;
+        }
         std::this_thread::sleep_until(deadline);
     }
+    if(stats) std::cout<<"completed frames="<<rendered<<" seconds="<<std::chrono::duration<double>(std::chrono::steady_clock::now()-started).count()<<std::endl;
     return 0;
 } catch (const std::exception& e) {
     std::cerr << "matrix-reflow: " << e.what() << '\n';
