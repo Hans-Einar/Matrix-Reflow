@@ -15,3 +15,11 @@
   frame runs and PPM capture support inspection without mouse automation.
 
 XScreenSaver integration, animated rendering, bloom and CRT are not yet implemented.
+
+## Iteration 2
+
+* Animated rain uses the existing GLX glyph renderer, a fixed 60 Hz simulation,
+  bounded catch-up, wall clock, depth, camera path and synchronized recycling.
+* Parameter validation and transactional core allocation prevent uncontrolled
+  growth and preserve existing state on allocation failure.
+* Density changes refresh column spacing as well as column count.

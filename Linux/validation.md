@@ -72,3 +72,17 @@ The permanent renderer accepts MMGlyphInstance arrays and an explicit camera/vie
 the glyph lab only supplies static data. Animated simulation, borrowed windows
 and XScreenSaver preview are iteration 2. Bloom/CRT are later iterations.
 This is not a Windows image-parity claim, an ASan run or a multi-monitor test.
+
+## I2-M1
+
+2026-09-11: Release tests passed. Simulation tests compare identical seeds at
+30 and 120 render FPS, including two camera recycling boundaries, depth 0/1.5,
+16:9/32:9/portrait, finite projection, sorted glyphs, resize and parameter updates.
+A synthetic 600-second pause advances only six physics steps. Allocation fault
+injection covers all nine creation allocations and all eight growth allocations;
+failed growth retains byte-identical old instances. Linux validates settings and
+checks the shared 1,048,576-instance ceiling before allocation.
+The density-only world-spacing refresh was corrected in the shared core.
+The existing void update API remains available; Linux uses the new checked API.
+An 8-second simulated rain frame was captured and inspected on Intel HD 620.
+No bloom or CRT was used.

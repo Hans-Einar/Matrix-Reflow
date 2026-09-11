@@ -34,7 +34,7 @@ embed_resource(composite_fragment "${CMAKE_CURRENT_SOURCE_DIR}/shaders/composite
 embed_resource(glyph_vertex "${CMAKE_CURRENT_SOURCE_DIR}/shaders/glyph.vert")
 embed_resource(glyph_fragment "${CMAKE_CURRENT_SOURCE_DIR}/shaders/glyph.frag")
 add_library(reflow-gl STATIC src/x11_host.cpp src/glx_context.cpp src/gl_resources.cpp src/renderer.cpp
-    src/glyph_lab.cpp ${glyph_vertex_HEADER} ${glyph_fragment_HEADER}
+    src/glyph_lab.cpp src/simulation.cpp ${glyph_vertex_HEADER} ${glyph_fragment_HEADER}
     ${fullscreen_vertex_HEADER} ${control_fragment_HEADER} ${composite_fragment_HEADER})
 target_include_directories(reflow-gl PUBLIC src PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
 target_link_libraries(reflow-gl PUBLIC PkgConfig::X11 PkgConfig::EPOXY reflow-atlas mmcore)
@@ -58,6 +58,13 @@ if(BUILD_TESTING)
     add_executable(atlas-test tests/atlas_test.cpp)
     target_link_libraries(atlas-test PRIVATE reflow-atlas mmcore)
     add_test(NAME atlas-test COMMAND atlas-test)
+    add_executable(simulation-test tests/simulation_test.cpp)
+    target_link_libraries(simulation-test PRIVATE reflow-gl)
+    add_test(NAME simulation-test COMMAND simulation-test)
+    add_executable(allocation-test tests/allocation_test.cpp)
+    target_link_libraries(allocation-test PRIVATE mmcore)
+    target_link_options(allocation-test PRIVATE -Wl,--wrap=malloc -Wl,--wrap=calloc)
+    add_test(NAME allocation-test COMMAND allocation-test)
     add_executable(graphics-test tests/graphics_test.cpp)
     target_link_libraries(graphics-test PRIVATE reflow-gl)
     add_executable(glyph-render-test tests/glyph_render_test.cpp)

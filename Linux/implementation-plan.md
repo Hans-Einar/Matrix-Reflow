@@ -1,6 +1,6 @@
 # Implementasjonsplan: Matrix-Reflow for Linux
 
-Dato: 11. september 2026. Status: alle fire milepæler i iterasjon 1 er passert. Se PR #1 for merge-status.
+Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 2 pågår, I2-M1 er passert.
 Grunnlag: [portstudien](study.md), upstream-revisjon
 `2577d25f747d629a08e19cd5ad44c9e1b4609002` og brukerens ønskede iterasjonsrekkefølge.
 Repository: `Hans-Einar/Matrix-Reflow`. Målplattform: AlmaLinux 10.2, X11,
@@ -203,7 +203,7 @@ Branch: `linux/02-rain-xscreensaver`. Avhengighet: merget iterasjon 1.
 Sluttresultat: brukbar skjermsparer og faktisk preview i `xscreensaver-settings`.
 Utseendet kan være enkelt, men tegn, animasjon og vertsintegrasjon skal fungere.
 
-### [ ] I2-M1 — Koble simuleringen til rendereren
+### [x] I2-M1 — Koble simuleringen til rendereren
 
 Leveranse: fast steg 1/60 sekund, oppsamlet tid begrenset til 0,1 sekund og
 resttid i sekunder til `mm_sim_write_instances`. Implementer projeksjon, kamera,

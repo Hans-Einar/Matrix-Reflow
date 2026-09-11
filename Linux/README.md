@@ -74,3 +74,11 @@ has not been claimed. Rendering uses top-down atlas UVs, OpenGL clip conventions
 premultiplied scene blending and an opaque final composite. Font mipmaps stop at
 level 3 to retain integral cell boundaries. This filtering choice will be revisited
 with small animated glyphs during iteration 2.
+
+## Iteration 2 development
+
+The default now shows animated rain. Use `--glyph-lab` for iteration 1's static
+scene. `--speed`, `--density`, `--scale`, `--depth`, `--camera-speed`, `--length`,
+`--mutation`, `--panning`, `--binary` and `--seed` control the simulation; see
+`--help` for ranges. `--warmup 8 --frames 2 --capture /tmp/rain.ppm` captures
+a developed rain field without waiting for the full startup.
