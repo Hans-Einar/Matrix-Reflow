@@ -12,13 +12,29 @@ pkg_check_modules(X11 REQUIRED IMPORTED_TARGET x11)
 pkg_check_modules(EPOXY REQUIRED IMPORTED_TARGET epoxy)
 find_package(Freetype REQUIRED)
 
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/generated")
+function(embed_resource symbol input)
+    set(output "${CMAKE_CURRENT_BINARY_DIR}/generated/${symbol}.h")
+    add_custom_command(OUTPUT "${output}"
+        COMMAND ${CMAKE_COMMAND} "-DINPUT=${input}" "-DOUTPUT=${output}"
+            "-DSYMBOL=${symbol}" -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/EmbedResource.cmake"
+        DEPENDS "${input}" "${CMAKE_CURRENT_SOURCE_DIR}/cmake/EmbedResource.cmake"
+        VERBATIM)
+    set(${symbol}_HEADER "${output}" PARENT_SCOPE)
+endfunction()
+embed_resource(matrix_font "${CMAKE_CURRENT_SOURCE_DIR}/../windows/Matrix-Code.ttf")
+add_library(reflow-atlas STATIC src/font_atlas.cpp ${matrix_font_HEADER})
+target_include_directories(reflow-atlas PUBLIC src PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
+target_link_libraries(reflow-atlas PRIVATE Freetype::Freetype)
+target_compile_options(reflow-atlas PRIVATE -Wall -Wextra -Wpedantic)
+
 add_library(mmcore STATIC ../core/mmcore.c)
 target_include_directories(mmcore PUBLIC ../core)
 target_link_libraries(mmcore PUBLIC m)
 target_compile_options(mmcore PRIVATE -Wall -Wextra -Wpedantic)
 
 add_executable(matrix-reflow src/main.cpp)
-target_link_libraries(matrix-reflow PRIVATE mmcore)
+target_link_libraries(matrix-reflow PRIVATE mmcore reflow-atlas)
 target_compile_options(matrix-reflow PRIVATE -Wall -Wextra -Wpedantic)
 
 include(CTest)
@@ -27,6 +43,9 @@ if(BUILD_TESTING)
     target_link_libraries(core-smoke PRIVATE mmcore)
     target_compile_options(core-smoke PRIVATE -Wall -Wextra -Wpedantic)
     add_test(NAME core-smoke COMMAND core-smoke)
+    add_executable(atlas-test tests/atlas_test.cpp)
+    target_link_libraries(atlas-test PRIVATE reflow-atlas mmcore)
+    add_test(NAME atlas-test COMMAND atlas-test)
 endif()
 
 include(GNUInstallDirs)

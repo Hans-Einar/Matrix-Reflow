@@ -1,6 +1,6 @@
 # Implementasjonsplan: Matrix-Reflow for Linux
 
-Dato: 11. september 2026. Status: iterasjon 1 pågår; I1-M1 er passert.
+Dato: 11. september 2026. Status: iterasjon 1 pågår; I1-M1–M2 er passert.
 Grunnlag: [portstudien](study.md), upstream-revisjon
 `2577d25f747d629a08e19cd5ad44c9e1b4609002` og brukerens ønskede iterasjonsrekkefølge.
 Repository: `Hans-Einar/Matrix-Reflow`. Målplattform: AlmaLinux 10.2, X11,
@@ -154,7 +154,7 @@ forståelige CMake-feil. Dokumenter installerte versjoner.
 
 Commit: `build(linux): I1-M1 add CMake build and core smoke test`.
 
-### [ ] I1-M2 — FreeType-atlas fra originalfonten
+### [x] I1-M2 — FreeType-atlas fra originalfonten
 
 Leveranse: ressursinnbygging, fontlasting fra minne og rasterisering til én
 8-bits dekningsflate. Behold 57-tegnstabellens rekkefølge, indeks 3/4/12 og

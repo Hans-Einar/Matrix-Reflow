@@ -22,3 +22,10 @@ ctest --test-dir build/linux --output-on-failure
 Use a separate build directory with `-DCMAKE_BUILD_TYPE=Release` for optimized
 builds. CPU tests require no display. Missing development dependencies fail at
 configure time. Build artifacts stay outside source control.
+
+## Atlas inspection
+
+`./build/linux/matrix-reflow --dump-atlas /tmp/matrix-atlas.pgm` writes a top-down
+8-bit image without opening X11. The font is built into the executable; its bytes
+come from `windows/Matrix-Code.ttf`. Generated headers live in the build tree.
+The renderer applies per-instance flips; the atlas itself is not mirrored.
