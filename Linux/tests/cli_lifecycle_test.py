@@ -10,7 +10,8 @@ binary = sys.argv[1]
 env = dict(os.environ)
 env.pop('XSCREENSAVER_WINDOW', None)
 for args in [
-    ['--speed', 'nan'], ['--density', '0'], ['--scale', '1e300'],
+    ['--bloom-strength','nan'], ['--bloom-strength','1.1'], ['--distortion','-1'],
+    ['--bloom-level','6'], ['--speed', 'nan'], ['--density', '0'], ['--scale', '1e300'],
     ['--depth', '-1'], ['--fps-limit', '0'], ['--fps-limit', '241'],
     ['--duration', '0'], ['--duration', 'inf'], ['--duration'],
     ['--size', '0x10'], ['--unknown'], ['--root'],

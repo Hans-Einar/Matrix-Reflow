@@ -2,6 +2,7 @@
 #include "fullscreen_vertex.h"
 #include "bloom_threshold_fragment.h"
 #include "bloom_downsample_fragment.h"
+#include "bloom_upsample_fragment.h"
 #include <algorithm>
 #include <cstdint>
 #include <stdexcept>
@@ -25,7 +26,9 @@ Bloom::Bloom()
     : threshold_(reinterpret_cast<const char*>(resources::fullscreen_vertex),
                  reinterpret_cast<const char*>(resources::bloom_threshold_fragment),"bloom threshold"),
       downsample_(reinterpret_cast<const char*>(resources::fullscreen_vertex),
-                  reinterpret_cast<const char*>(resources::bloom_downsample_fragment),"bloom downsample") {}
+                  reinterpret_cast<const char*>(resources::bloom_downsample_fragment),"bloom downsample"),
+      upsample_(reinterpret_cast<const char*>(resources::fullscreen_vertex),
+                reinterpret_cast<const char*>(resources::bloom_upsample_fragment),"bloom upsample") {}
 void Bloom::resize(int width,int height) {
     if(width<1 || height<1) throw std::runtime_error("Bloom requires positive dimensions");
     if(width==width_ && height==height_) return;
@@ -56,4 +59,13 @@ void Bloom::extract(GLuint scene,int width,int height) {
     for(int i=1;i<5;++i) pass(downsample_,levels_[i-1].texture.get(),levels_[i-1].width,levels_[i-1].height,levels_[i]);
     check_gl("Extract/downsample bloom");
 }
+void Bloom::accumulate() {
+    if(levels_.size()!=5) throw std::runtime_error("Bloom must be extracted before accumulation");
+    glEnable(GL_BLEND);glBlendEquation(GL_FUNC_ADD);glBlendFunc(GL_ONE,GL_ONE);
+    for(int i=3;i>=0;--i)
+        pass(upsample_,levels_[i+1].texture.get(),levels_[i+1].width,levels_[i+1].height,levels_[i]);
+    glDisable(GL_BLEND);
+    check_gl("Additive bloom upsampling");
+}
+
 }

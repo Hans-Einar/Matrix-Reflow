@@ -35,7 +35,8 @@ embed_resource(glyph_vertex "${CMAKE_CURRENT_SOURCE_DIR}/shaders/glyph.vert")
 embed_resource(glyph_fragment "${CMAKE_CURRENT_SOURCE_DIR}/shaders/glyph.frag")
 embed_resource(bloom_threshold_fragment "${CMAKE_CURRENT_SOURCE_DIR}/shaders/bloom_threshold.frag")
 embed_resource(bloom_downsample_fragment "${CMAKE_CURRENT_SOURCE_DIR}/shaders/bloom_downsample.frag")
-add_library(reflow-gl STATIC src/bloom.cpp ${bloom_threshold_fragment_HEADER} ${bloom_downsample_fragment_HEADER} src/x11_host.cpp src/glx_context.cpp src/gl_resources.cpp src/renderer.cpp
+embed_resource(bloom_upsample_fragment "${CMAKE_CURRENT_SOURCE_DIR}/shaders/bloom_upsample.frag")
+add_library(reflow-gl STATIC ${bloom_upsample_fragment_HEADER} src/bloom.cpp ${bloom_threshold_fragment_HEADER} ${bloom_downsample_fragment_HEADER} src/x11_host.cpp src/glx_context.cpp src/gl_resources.cpp src/renderer.cpp
     src/glyph_lab.cpp src/simulation.cpp ${glyph_vertex_HEADER} ${glyph_fragment_HEADER}
     ${fullscreen_vertex_HEADER} ${control_fragment_HEADER} ${composite_fragment_HEADER})
 target_include_directories(reflow-gl PUBLIC src PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")

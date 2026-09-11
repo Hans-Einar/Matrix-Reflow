@@ -42,3 +42,7 @@ remain unverified. Bloom, CRT and the full settings tool are still pending.
 
 * Four-tap soft-knee extraction and five RGBA16F bloom levels with reference
   13-tap downsampling, tiny-window handling and level diagnostics.
+* Reference 9-tap additive upsampling and opaque SDR composition, with bloom
+  strength, barrel/chromatic distortion, vignette, edge fade and startup easing.
+* Glow defaults to .9; `--no-bloom`, `--bloom-strength`, `--distortion` and
+  `--no-post` support tuning and comparisons. Unused bloom targets are released.

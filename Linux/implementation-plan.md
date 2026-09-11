@@ -1,6 +1,6 @@
 # Implementasjonsplan: Matrix-Reflow for Linux
 
-Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 2 er merget; iterasjon 3 pågår, I3-M1 er passert.
+Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 2 er merget; iterasjon 3 pågår, I3-M1–M2 er passert.
 Grunnlag: [portstudien](study.md), upstream-revisjon
 `2577d25f747d629a08e19cd5ad44c9e1b4609002` og brukerens ønskede iterasjonsrekkefølge.
 Repository: `Hans-Einar/Matrix-Reflow`. Målplattform: AlmaLinux 10.2, X11,
@@ -291,7 +291,7 @@ lesing og skriving av samme tekstur i ett pass. Regnet uten bloom er uendret.
 
 Commit: `feat(linux): I3-M1 add bloom extraction and downsampling`.
 
-### [ ] I3-M2 — Additiv oppskalering og komposisjon
+### [x] I3-M2 — Additiv oppskalering og komposisjon
 
 Leveranse: 9-taps oppskalering som akkumulerer i eksisterende større nivå,
 bloomstyrke og sluttkomposisjon. Oversett også barrel distortion, kromatisk

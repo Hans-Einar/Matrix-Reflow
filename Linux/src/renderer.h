@@ -18,11 +18,16 @@ struct RenderView {
     std::array<float, 3> fog{0,34,186};
     bool textured = true, wireframe = false, extra_contrast_heads = false;
 };
+struct PostSettings {
+    bool enabled=false, bloom=true;
+    float intensity=.9f, distortion=0, time=1.8f;
+};
 class Renderer {
 public:
     explicit Renderer(const FontAtlas& atlas = build_atlas(), bool double_buffered = true);
     void resize(int width, int height);
     void draw_control();
+    void postprocess(const PostSettings& settings);
     void bloom_level(int level); // 0 = normal scene, 1..5 = extracted diagnostic level
     void draw_instances(const MMGlyphInstance* instances, std::size_t count, const RenderView& view);
     // Capture the same final composite offscreen, independent of X11 occlusion.
@@ -32,6 +37,7 @@ public:
 private:
     void begin_scene();
     void finish_scene();
+    PostSettings post_;
     int bloom_level_=0;
     std::unique_ptr<Bloom> bloom_;
     void composite(GLuint target = 0);

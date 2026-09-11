@@ -34,6 +34,7 @@ int main(int argc, char** argv) try {
     std::uint64_t seed = 12345;
     double warmup = 0, duration = 0;
     int bloom_level=0;
+    bool post_enabled=true, post_explicit=false;
     int fps_limit=60; bool stats=false;
     std::string capture, dump_atlas;
     for (int i = 1; i < argc; ++i) {
@@ -60,6 +61,10 @@ int main(int argc, char** argv) try {
                          "  --binary             Use 0/1 characters\n"
                          "  --seed N             Deterministic seed (1..1000000)\n"
                          "  --warmup N           Simulate 0..120 seconds before display\n"
+                         "  --bloom / --no-bloom Enable/disable glow (default on)\n"
+                         "  --bloom-strength N   Bloom intensity 0..1 (default .9)\n"
+                         "  --distortion N       Barrel/chromatic distortion 0..1 (default 0)\n"
+                         "  --no-post            Raw iteration-2 output, for comparisons\n"
                          "  --bloom-level N      Inspect extracted bloom level 1..5\n"
                          "  --control            Display the renderer control scene\n"
                          "  --fps-limit N        Maximum FPS 1..240 (default 60)\n"
@@ -84,6 +89,8 @@ int main(int argc, char** argv) try {
         else if (arg == "--dump-atlas") dump_atlas = value();
         else if (arg == "--hidden") visible = false;
         else if (arg == "--fps-limit") fps_limit=number(value(),240);
+        else if (arg == "--bloom" || arg == "--no-bloom") {settings.bloom=arg=="--bloom";post_explicit=true;}
+        else if (arg == "--no-post") post_enabled=false;
         else if (arg == "--bloom-level") bloom_level=number(value(),5);
         else if (arg == "--stats") stats=true;
         else if (arg == "--control") control = true;
@@ -92,12 +99,17 @@ int main(int argc, char** argv) try {
         else if (arg == "--panning") settings.panning = 1;
         else if (arg == "--binary") settings.binaryMode = 1;
         else if (arg == "--speed" || arg == "--density" || arg == "--scale" || arg == "--depth" ||
-                 arg == "--camera-speed" || arg == "--length" || arg == "--mutation" || arg == "--warmup" || arg == "--duration") {
+                 arg == "--camera-speed" || arg == "--length" || arg == "--mutation" || arg == "--warmup" || arg == "--duration" || arg == "--bloom-strength" || arg == "--distortion") {
             const auto text=value(); double v=0;
             const auto parsed=std::from_chars(text.data(),text.data()+text.size(),v);
             if(parsed.ec!=std::errc{} || parsed.ptr!=text.data()+text.size() || !std::isfinite(v))
                 throw std::runtime_error("Invalid number for " + arg);
-            if(arg=="--speed") settings.speed=v;
+            if(arg=="--bloom-strength" || arg=="--distortion") {
+                if(v<0 || v>1) throw std::runtime_error(arg+" must be 0..1");
+                if(arg=="--bloom-strength") settings.bloomIntensity=v;else settings.crtDistort=v;
+                post_explicit=true;
+            }
+            else if(arg=="--speed") settings.speed=v;
             else if(arg=="--density") settings.density=v;
             else if(arg=="--scale") settings.glyphScale=static_cast<float>(v);
             else if(arg=="--depth") settings.depthAmount=v;
@@ -164,6 +176,8 @@ int main(int argc, char** argv) try {
         if(localtime_r(&wall,&local)) simulation.clock(local.tm_hour,local.tm_min,local.tm_sec);
         simulation.advance(elapsed);
         renderer.resize(host.width(), host.height());
+        renderer.postprocess({post_enabled && (!(control||lab) || post_explicit),settings.bloom!=0,
+            static_cast<float>(settings.bloomIntensity),static_cast<float>(settings.crtDistort),simulation.view().time});
         if (control) renderer.draw_control();
         else if(lab) renderer.draw_instances(instances.data(), instances.size(), reflow::glyph_lab_view(host.width(), host.height()));
         else renderer.draw_instances(simulation.data(), simulation.count(), simulation.view());

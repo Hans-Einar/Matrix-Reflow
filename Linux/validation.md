@@ -179,3 +179,28 @@ allocation is transactional. A pass rejects source/destination aliasing.
 a one-frame level-5 diagnostic ran successfully. No-bloom glyph/control tests
 retain their original pixel values. Kernels follow `windows/shaders.hlsl` in
 this repository; no external Windows screenshot parity is claimed.
+
+## I3-M2
+
+2026-09-11: Release bloom/composite, original graphics/glyph and CLI tests passed
+on Intel HD 620 in 1.85 seconds. The 9-tap tent upsample uses ONE/ONE blending
+into each existing larger level without sampling that destination. Constant
+bright input sums to 7.5 (five contributions of 1.5), proving that upsampling
+retains the previously extracted levels. Other checks cover monotonic intensity,
+zero-intensity/off equivalence, opaque alpha, repeated capture without repeated
+accumulation, startup easing, invalid settings, tiny resize and runtime toggling.
+
+The composite ports reference barrel warp, chromatic offsets, vignette and edge
+fade. At full distortion the corners are black rather than stretched edge texels.
+The 1.8-second smoothstep ramps bloom and distortion, as in Windows DrawPost;
+it does not introduce an unrelated whole-scene fade. The SDR reference swapchain
+is B8G8R8A8_UNORM, not an sRGB view. The port retains FP16 arithmetic then UNORM
+clamping without an additional gamma/tone-map pass; a center-color check detects
+unexpected gamma changes. GLSL keeps output alpha 1 by design. No changes were
+made to the existing inactive whiteFlash term or glyph shader.
+
+The application defaults to bloom at .9, with distortion 0. `--no-bloom` disables
+only glow; `--no-post` retains iteration-2 raw output for comparisons. Diagnostic
+control/glyph scenes stay raw unless bloom/distortion is explicitly requested.
+Bloom textures are released when unused; level inspection shows extraction
+before accumulation. Final visual/preview and cost checks follow in I3-M3.
