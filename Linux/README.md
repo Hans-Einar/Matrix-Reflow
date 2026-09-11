@@ -81,3 +81,8 @@ scene uses premultiplied blending and an opaque final composite. Font mipmaps
 stop at level 3 to retain integral cell boundaries. Native Wayland and screen
 locking/authentication are outside this port. See [iteration 2 validation](validation.md#i2-m4)
 for hardware coverage, preview checks and the deliberately shortened stability run.
+
+## Iteration 3 development
+
+`--bloom-level 1..5` inspects the extracted half-resolution through 1/32-resolution
+levels. These diagnostics use the normal renderer and also work in borrowed windows.

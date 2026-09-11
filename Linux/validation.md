@@ -165,3 +165,17 @@ waived. Physical multi-monitor operation, real suspend/resume, Windows rendering
 parity, bloom and CRT remain untested or deferred. Synthetic aspect ratios and
 a 600-second simulation pause are covered, but are not substitutes for hardware
 multi-monitor or suspend testing.
+
+## I3-M1
+
+2026-09-11: Release bloom/graphics/glyph tests passed on Intel HD 620 (0.87 s).
+The reference four-tap extraction uses threshold .72*.8, soft knee .3 and gain
+1.5. The following 13-tap kernels retain normalized weights. Float readback
+checks constant dark/mid/bright inputs, HDR retention (1.5), all five dimensions,
+a bright patch spreading with decreasing peak, and 1x1/odd/narrow resizes.
+Each level owns a distinct RGBA16F texture and complete framebuffer; replacement
+allocation is transactional. A pass rejects source/destination aliasing.
+`--bloom-level 1..5` displays an extracted level through the normal composite;
+a one-frame level-5 diagnostic ran successfully. No-bloom glyph/control tests
+retain their original pixel values. Kernels follow `windows/shaders.hlsl` in
+this repository; no external Windows screenshot parity is claimed.

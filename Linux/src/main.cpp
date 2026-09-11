@@ -33,6 +33,7 @@ int main(int argc, char** argv) try {
     auto settings = mm_settings_default();
     std::uint64_t seed = 12345;
     double warmup = 0, duration = 0;
+    int bloom_level=0;
     int fps_limit=60; bool stats=false;
     std::string capture, dump_atlas;
     for (int i = 1; i < argc; ++i) {
@@ -42,7 +43,7 @@ int main(int argc, char** argv) try {
             return argv[i];
         };
         if (arg == "--help") {
-            std::cout << "Matrix Reflow Linux - iteration 2\n"
+            std::cout << "Matrix Reflow Linux - iteration 3\n"
                          "  --windowed           Show animated rain (default)\n"
                          "  --root               Render in XSCREENSAVER_WINDOW (never desktop root)\n"
                          "  --window-id ID       Render in a borrowed X11 window\n"
@@ -59,6 +60,7 @@ int main(int argc, char** argv) try {
                          "  --binary             Use 0/1 characters\n"
                          "  --seed N             Deterministic seed (1..1000000)\n"
                          "  --warmup N           Simulate 0..120 seconds before display\n"
+                         "  --bloom-level N      Inspect extracted bloom level 1..5\n"
                          "  --control            Display the renderer control scene\n"
                          "  --fps-limit N        Maximum FPS 1..240 (default 60)\n"
                          "  --duration N         Stop after N wall-clock seconds\n"
@@ -82,6 +84,7 @@ int main(int argc, char** argv) try {
         else if (arg == "--dump-atlas") dump_atlas = value();
         else if (arg == "--hidden") visible = false;
         else if (arg == "--fps-limit") fps_limit=number(value(),240);
+        else if (arg == "--bloom-level") bloom_level=number(value(),5);
         else if (arg == "--stats") stats=true;
         else if (arg == "--control") control = true;
         else if (arg == "--glyph-lab") lab = true;
@@ -138,6 +141,7 @@ int main(int argc, char** argv) try {
     reflow::GlxContext context(host.display(), host.config(), host.window());
     std::cout << context.description() << std::endl;
     reflow::Renderer renderer(reflow::build_atlas(),context.double_buffered()); // Dies before context, which dies before host.
+    renderer.bloom_level(bloom_level);
     const auto instances = reflow::glyph_lab_instances();
     reflow::Simulation simulation(settings,static_cast<float>(host.width())/host.height(),seed);
     for(int i=0;i<static_cast<int>(warmup*60);++i) simulation.advance(1.0/60);

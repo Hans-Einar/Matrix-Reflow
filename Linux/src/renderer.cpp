@@ -93,7 +93,7 @@ void Renderer::draw_control() {
     glUseProgram(control_.get());
     glBindVertexArray(fullscreen_vao_.get());
     glDrawArrays(GL_TRIANGLES, 0, 3);
-    composite();
+    finish_scene();
 }
 void Renderer::draw_instances(const MMGlyphInstance* instances, std::size_t count, const RenderView& view) {
     if (!width_ || !height_) return;
@@ -122,6 +122,17 @@ void Renderer::draw_instances(const MMGlyphInstance* instances, std::size_t coun
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, static_cast<GLsizei>(count));
+    finish_scene();
+}
+void Renderer::bloom_level(int level) {
+    if(level<0 || level>5) throw std::runtime_error("Bloom level must be 0..5");
+    bloom_level_=level;
+}
+void Renderer::finish_scene() {
+    if(bloom_level_) {
+        if(!bloom_) bloom_=std::make_unique<Bloom>();
+        bloom_->extract(scene_.get(),width_,height_);
+    }
     composite();
 }
 void Renderer::composite(GLuint target) {
@@ -131,7 +142,7 @@ void Renderer::composite(GLuint target) {
     glDisable(GL_BLEND);
     glUseProgram(composite_.get());
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, scene_.get());
+    glBindTexture(GL_TEXTURE_2D, bloom_level_ ? bloom_->level(bloom_level_-1).texture.get() : scene_.get());
     glUniform1i(composite_.uniform("scene"), 0);
     glBindVertexArray(fullscreen_vao_.get());
     glDrawArrays(GL_TRIANGLES, 0, 3);

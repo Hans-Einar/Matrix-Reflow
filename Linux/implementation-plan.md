@@ -1,6 +1,6 @@
 # Implementasjonsplan: Matrix-Reflow for Linux
 
-Dato: 11. september 2026. Status: iterasjon 1 er merget; I2-M1–M4 er passert, og iterasjon 2 er klar for merge.
+Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 2 er merget; iterasjon 3 pågår, I3-M1 er passert.
 Grunnlag: [portstudien](study.md), upstream-revisjon
 `2577d25f747d629a08e19cd5ad44c9e1b4609002` og brukerens ønskede iterasjonsrekkefølge.
 Repository: `Hans-Einar/Matrix-Reflow`. Målplattform: AlmaLinux 10.2, X11,
@@ -276,7 +276,10 @@ ikke tilstrekkelig dokumentasjon for preview-milepælen.
 Branch: `linux/03-bloom`. Avhengighet: merget iterasjon 2.
 Sluttresultat: Reflows bloom-kjede i både eget vindu og XScreenSaver-preview.
 
-### [ ] I3-M1 — Terskel og fem nivåer med nedskalering
+Batterihensyn (brukerens instruksjon): bygg med høyst to jobber og bruk korte,
+avgrensede funksjons-/ytelsesmålinger. Ingen langtester i denne økten.
+
+### [x] I3-M1 — Terskel og fem nivåer med nedskalering
 
 Leveranse: GLSL for terskeluttrekk og 13-taps nedskalering, RGBA16F-mål fra 1/2
 til 1/32 oppløsning og riktig gjenoppretting ved resize. Hver dimensjon er minst

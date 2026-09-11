@@ -37,3 +37,8 @@ At this milestone, animated rendering and XScreenSaver integration were still pe
 The planned 30-minute run was stopped at the user's request on battery. Short
 checks passed; long-term memory stability and physical multi-monitor behavior
 remain unverified. Bloom, CRT and the full settings tool are still pending.
+
+## Iteration 3
+
+* Four-tap soft-knee extraction and five RGBA16F bloom levels with reference
+  13-tap downsampling, tiny-window handling and level diagnostics.
