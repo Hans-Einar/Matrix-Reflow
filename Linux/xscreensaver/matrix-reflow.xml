@@ -1,15 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <screensaver name="matrix-reflow" _label="Matrix Reflow" gl="yes">
   <command arg="--root" />
-  <select id="profile">
-    <option id="active" _label="Saved active profile (GTK)" />
-    <option id="defaults" _label="Built-in defaults + controls below" arg-set="--profile 0" />
-    <option id="profile1" _label="Saved profile 1" arg-set="--profile 1" />
-    <option id="profile2" _label="Saved profile 2" arg-set="--profile 2" />
-    <option id="profile3" _label="Saved profile 3" arg-set="--profile 3" />
-    <option id="profile4" _label="Saved profile 4" arg-set="--profile 4" />
-    <option id="profile5" _label="Saved profile 5" arg-set="--profile 5" />
-  </select>
   <hgroup>
     <vgroup>
       <number id="speed" type="spinbutton" arg="--speed %" _label="Speed" low="0.0" high="1.0" default="0.35" />
@@ -38,8 +29,18 @@
       <number id="fps-limit" type="spinbutton" arg="--fps-limit %" _label="Frame limit" low="1" high="240" default="60" />
     </vgroup>
   </hgroup>
-  <_description>Matrix Reflow: OpenGL digital rain with bloom and CRT.
-For saved colors and profiles, use matrix-reflow-settings and leave the controls here at their defaults. These controls show built-in defaults, not loaded profile values. Any generated arguments override the saved profile.
-Choose “Built-in defaults + controls below” for independent XScreenSaver configuration. Color choosers are in matrix-reflow-settings; CLI also accepts main/glitch RGB channels from 0 to 1.
-</_description>
+  <_description>Matrix Reflow: OpenGL digital rain with bloom and CRT. All settings and preview use this XScreenSaver dialog. RGB color channels range from 0 to 1. The generated command uses built-in defaults plus these controls, independently of optional CLI profiles.</_description>
+  <command arg="--profile 0" />
+  <hgroup>
+    <vgroup>
+      <number id="main-red" type="spinbutton" arg="--main-red %" _label="Rain Red" low="0.0" high="1.0" default="0.05" />
+      <number id="main-green" type="spinbutton" arg="--main-green %" _label="Rain Green" low="0.0" high="1.0" default="0.85" />
+      <number id="main-blue" type="spinbutton" arg="--main-blue %" _label="Rain Blue" low="0.0" high="1.0" default="0.25" />
+    </vgroup>
+    <vgroup>
+      <number id="glitch-red" type="spinbutton" arg="--glitch-red %" _label="Glitch Red" low="0.0" high="1.0" default="0.85" />
+      <number id="glitch-green" type="spinbutton" arg="--glitch-green %" _label="Glitch Green" low="0.0" high="1.0" default="0.05" />
+      <number id="glitch-blue" type="spinbutton" arg="--glitch-blue %" _label="Glitch Blue" low="0.0" high="1.0" default="0.05" />
+    </vgroup>
+  </hgroup>
 </screensaver>

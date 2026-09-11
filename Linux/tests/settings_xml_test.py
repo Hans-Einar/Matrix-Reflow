@@ -22,9 +22,9 @@ for node in root.findall('.//number'):
     key=node.attrib['id']; seen.add(key)
     _,_,lo,hi,default=schema[key]
     for attr,value in [('low',lo),('high',hi),('default',default)]:
-        assert math.isclose(float(node.attrib[attr]),float(value),abs_tol=2e-8), (key,attr)
+        assert math.isclose(float(node.attrib[attr]),float(value),abs_tol=1e-7), (key,attr)
         values=run(shlex.split(node.attrib['arg'].replace('%',node.attrib[attr])))
-        assert math.isclose(float(values[key]),float(node.attrib[attr]),abs_tol=2e-8),key
+        assert math.isclose(float(values[key]),float(node.attrib[attr]),abs_tol=1e-7),key
 for node in root.findall('.//boolean'):
     key=node.attrib['id'];seen.add(key)
     for action in ['arg-set','arg-unset']:
@@ -32,6 +32,6 @@ for node in root.findall('.//boolean'):
             values=run(shlex.split(node.attrib[action]))
             assert values[key]==('1' if action=='arg-set' else '0'),key
             assert defaults[key]==('0' if action=='arg-set' else '1'),key
-assert seen == {key for key in schema if not key.startswith(('main-','glitch-'))}
-assert [n.attrib.get('arg-set') for n in root.findall('.//option')] == [None]+[f'--profile {i}' for i in range(6)]
+assert seen == set(schema)
+assert [n.attrib['arg'] for n in root.findall('command')] == ['--root', '--profile 0']
 print('All XML bounds, defaults, boolean polarity and emitted arguments match CLI')

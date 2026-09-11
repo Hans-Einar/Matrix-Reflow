@@ -20,7 +20,7 @@ demomotor som senere erstattes.
 | 2 | Animert regn som XScreenSaver-effekt, med fungerende preview | `linux/02-rain-xscreensaver` | `Linux 2: animated rain and XScreenSaver preview` |
 | 3 | Bloom og ferdig SDR-komposisjon | `linux/03-bloom` | `Linux 3: bloom and SDR compositing` |
 | 4 | Valgfritt CRT-pass | `linux/04-crt` | `Linux 4: optional CRT post-processing` |
-| 5 | Full konfigurasjon, GTK-verktøy, profiler og ferdig installasjon | `linux/05-configuration` | `Linux 5: configuration tools and release integration` |
+| 5 | CLI/XML-konfigurasjon via XScreenSaver og ferdig installasjon | `linux/05-configuration` | `Linux 5: configuration tools and release integration` |
 
 De fem iterasjonene kjøres sekvensielt. En iterasjon er ferdig når alle dens
 milepæler er verifisert, tilhørende commits er pushet, og iterasjonens PR er merget
@@ -72,7 +72,7 @@ Foreslått inndeling, som kan justeres innenfor milepælene:
 | `Linux/src/renderer.*`, `gl_resources.*` | Instancing, GPU-ressurser, resize og tegning |
 | `Linux/src/simulation.*` | Fast tidssteg, resttid, klokke og kamerarebasering |
 | `Linux/src/postprocess.*`, `Linux/shaders/` | Komposisjon fra I1, bloom fra I3, CRT fra I4 |
-| `Linux/src/settings.*`, `Linux/config-ui/` | Felles validering og konfigurasjon; GTK-app fra I5 |
+| `Linux/src/settings.*` | Felles validering og konfigurasjon fra I5 |
 | `Linux/xscreensaver/` | XML og hjelp til registrering fra I2 |
 | `Linux/tests/` | Målrettede CPU-tester og grafiske kontrollscener |
 | `Linux/README.md`, `validation.md`, `CHANGELOG-WIP.md` | Bygg, bruk, verifikasjon og kommende endringer |
@@ -368,9 +368,8 @@ PR ferdig når: I4-M1–M3 er passert og preview fortsatt er stabilt.
 ## Iterasjon 5 — Konfigurasjonsverktøy og ferdig leveranse
 
 Branch: `linux/05-configuration`. Avhengighet: merget iterasjon 4.
-Sluttresultat: full CLI/XML-konfigurasjon og en enkel GTK-app med fargevalg og
-fem brukerprofiler. GTK-verktøyet er et valgfritt byggtarget; rendereren trenger
-ikke GTK for å kjøre. Denne planen inkluderer GTK-arbeidet som studien estimerte separat.
+Sluttresultat etter brukerens avgrensning: full CLI/XML-konfigurasjon med
+XScreenSavers eksisterende innstillingsdialog og preview. Ingen separat GTK-app.
 
 ### [x] I5-M1 — Felles innstillingsmodell og lagring
 
@@ -381,7 +380,7 @@ funksjonen faktisk finnes; dokumenter eksisterende shader-/kjerneavvik.
 
 Planlagt lagring er versjonert INI via GLib `GKeyFile` under
 `$XDG_CONFIG_HOME/matrix-reflow/settings.ini`, med vanlig XDG-fallback. GLib legges
-til som felles parseravhengighet her; GTK er fortsatt kun for GUI-targetet.
+til som felles parseravhengighet her; ingen GTK-avhengighet i rendereren.
 Lagre atomisk og behold tidligere gyldig fil ved feil. Rekkefølgen er:
 innebygde standarder → valgt lagret profil → eksplisitte CLI-overstyringer.
 
@@ -397,49 +396,40 @@ Commit: `feat(linux): I5-M1 add validated settings and versioned profiles`.
 Leveranse: fullfør `--help` og XML-kontroller for de innstillingene XScreenSavers
 GUI kan uttrykke godt. Kartlegg hastighet, tetthet, størrelse, lengde, dybde,
 kamera, mutasjon, farger, speiling, binærmodus, hull, hoder, bloom, CRT og FPS-tak.
-Dokumenter hva som ligger i GTK-verktøyet og hvilke valg som er diagnostikk.
+Alle vanlige valg skal være i XScreenSavers dialog; dokumenter CLI-diagnostikk.
 
 Bestått når: UI-grenser og standarder samsvarer med parseren, og kommandoene
-XML genererer kan parses og gi forventet preview. Velg én dokumentert modus for
-profilbasert oppstart og én for eksplisitte XScreenSaver-argumenter. Vis tydelig
+XML genererer kan parses og gi forventet preview. Bruk eksplisitte standarder i XScreenSaver; dokumenter separat valgfri
+profilbasert oppstart fra CLI. Vis tydelig
 at eksplisitte argumenter overstyrer profilen; ingen innstilling skal tilsynelatende
 bli ignorert uten at den effektive konfigurasjonen forklarer hvorfor.
 
 Commit: `feat(linux): I5-M2 complete CLI and XScreenSaver configuration`.
 
-### [ ] I5-M3 — GTK-verktøy med fem profiler og fargevalg
+### [–] I5-M3 — Separat GTK-verktøy utgår etter brukerens endring
 
-Leveranse: `matrix-reflow-settings` som GTK 3-app, felles validering/lagring,
-oversiktlige innstillingsgrupper, fargevelgere, fem navngitte brukerprofiler,
-lagre/tilbakestille og en knapp for preview. Ikke lag en egen renderer i GUI-en:
-preview starter `matrix-reflow --windowed` med en snapshot av valgene gjennom
-argumentliste uten shell. Ulagrede valg kan prøves uten å overskrive brukerprofilen.
+Brukeren presiserte 11. september at XScreenSavers eksisterende Settings og
+preview er tilstrekkelig. Den separate GTK-appen er derfor fjernet med en egen
+revert-commit. Innstillinger, farger og preview håndteres i XScreenSaver; M3
+kreves ikke for ferdigstilling. CLI-modellen og valgfri INI-profillasting beholdes.
 
-Bestått når: GUI og CLI gir identiske effektive verdier, profiler bevares etter
-omstart, og endring av profil/farge vises i preview. Å lukke innstillingsappen
-rydder opp dens egne previewprosesser og påvirker ikke XScreenSavers prosess.
-Renderer-only-bygg og normal skjermsparerstart fungerer uten GTK installert.
+### [x] I5-M4 — Installasjon, oppgradering og endelig verifikasjon
 
-Commit: `feat(linux): I5-M3 add GTK settings with color controls and profiles`.
-
-### [ ] I5-M4 — Installasjon, oppgradering og endelig verifikasjon
-
-Leveranse: konfigurerbare installasjonsstier, `DESTDIR`-staging, desktopfil for
-GTK-verktøyet og dokumentert registrering/fjerning av XScreenSaver-oppføringen.
+Leveranse: konfigurerbare installasjonsstier, `DESTDIR`-staging og dokumentert registrering/fjerning av XScreenSaver-oppføringen.
 Verifiser start utenfor kildekatalogen. Fullfør README, funksjonsoversikt,
 WIP-release notes og listen over kjente forskjeller fra Windows.
 
 Bestått når: ren Release-bygging og staging virker, oppgradering bevarer profiler
-og andre skjermsparere, og både installert GUI og effekt finner sine ressurser.
-Gjenta den funksjonelle matrisen fra I2–I4 på sluttresultatet. Kjør minst én
-totimers vindus-/previewøkt med normal bruk og gjennomfør tilgjengelig flerskjerm-
-og suspend/resume-kontroll; noter maskinvaredekning presist.
+og andre skjermsparere, og den installerte effekten finner sine ressurser.
+Gjenta den funksjonelle matrisen fra I2–I4 på sluttresultatet. Den planlagte totimersøkten utgår etter brukerens batteribegrensning; bruk korte
+avgrensede kontroller og noter at utholdenhet, fysisk flerskjerm og suspend/resume
+ikke er verifisert.
 Avklar opphavs-/lisensspørsmål fra studien før en redistribuerbar binærpakke;
 RPM, publisering og en release-tag er ikke nødvendige for å merge kode-PR-en.
 
 Commit: `build(linux): I5-M4 finish installation and release documentation`.
 
-PR ferdig når: I5-M1–M4 er passert. Stabilitets- og visuelle begrensninger som
+PR ferdig når: I5-M1, M2 og den avgrensede M4 er passert; M3 utgår. Stabilitets- og visuelle begrensninger som
 gjenstår er konkret dokumentert; ikke beskriv ubekreftet Windows-paritet som oppnådd.
 
 ## Innsats og kobling til studiens arbeidspakker
@@ -460,7 +450,7 @@ sjette iterasjon for alt integrasjonsarbeidet.
 
 Med omtrent 25 prosent reserve er planrammen **24–40 persondager**, omtrent
 180–300 timer. Uten GTK-tillegget samsvarer rammen med studiens 18–30 dager.
-Forskjellen skyldes at denne planen konkret inkluderer GTK-verktøy og profiler.
+Dette var opprinnelig estimat; GTK-tillegget utgikk etter brukerens avgrensning 11. september.
 Intervallene per iterasjon summeres; de er ikke kumulative slik milepælanslagene
 i studiens første tabell var.
 

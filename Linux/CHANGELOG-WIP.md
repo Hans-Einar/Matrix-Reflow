@@ -71,4 +71,7 @@ remain unverified. Bloom, CRT and the full settings tool are still pending.
 * Private atomic saves, strict validation and display-independent effective-settings output.
 * Defaults → saved profile → explicit arguments; CLI never writes profiles.
 * Schema-generated CLI help and complete positive/negative switches, including RGB channels.
-* XScreenSaver profile selection and explicit-default mode, with checked numeric/boolean controls.
+* XScreenSaver Settings exposes all supported fields, including RGB, using explicit defaults.
+* Separate GTK settings app withdrawn at the user’s request; existing XScreenSaver preview remains the UI.
+* Final Release build, staged install, CLI/XML validation and short GLX regression checks passed.
+* Long endurance and additional hardware testing remain deferred while on battery.

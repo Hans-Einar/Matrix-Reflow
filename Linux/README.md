@@ -3,14 +3,14 @@
 The Linux port now renders animated Matrix rain in its own window and inside
 XScreenSaver's actual preview and saver windows. Both use the same OpenGL 3.3/GLX
 renderer, embedded FreeType font atlas and shared C simulation. Multiscale bloom
-and SDR composition are implemented, with an optional CRT filter. The full
-configuration tool and profiles follow in iteration 5.
+and SDR composition are implemented, with an optional CRT filter. Configuration and preview use XScreenSaver’s existing Settings dialog.
+There is no separate GTK settings application.
 See the [implementation plan](implementation-plan.md) and [study](study.md).
 
 ## Build and run
 
 Verified on AlmaLinux 10.2 with `gcc gcc-c++ cmake make pkgconf-pkg-config
-libX11-devel libepoxy-devel freetype-devel` and Python 3 for registration tests.
+libX11-devel libepoxy-devel freetype-devel glib2-devel` and Python 3 for registration tests.
 No Windows SDK is required.
 
 ```sh
@@ -169,21 +169,34 @@ Effective-settings output lists the base profile, explicit overrides and resolve
 values without opening a display. Raw-rendering diagnostics (`--no-post`, control,
 glyph lab, snapshot time and identity CRT) remain per-run CLI options, not profiles.
 
-XScreenSaver has two modes in its profile selector:
+XScreenSaver’s existing **Settings** dialog is the configuration UI. It exposes
+all supported fields, including six RGB channel controls (0..1), and uses its
+existing preview. It always emits `--profile 0` so displayed defaults are accurate
+and optional CLI profiles cannot silently change the effect. No separate GTK
+application is built or installed. Restart the settings dialog after an XML upgrade.
 
-* **Saved active profile (GTK)** or **Saved profile 1..5**: leave its other controls
-  at their defaults and configure in `matrix-reflow-settings`. Those controls show
-  built-in defaults, not the profile's loaded values. Nondefault controls generate
-  explicit CLI overrides. Clear old overrides when switching to profile mode.
-* **Built-in defaults + controls below**: emits `--profile 0`; XScreenSaver's controls
-  now describe the effective settings independently of saved profiles. For custom
-  colors use profile mode or explicit CLI channel arguments.
+Versioned profile storage remains available to CLI users who maintain an INI file;
+there is no profile editor in this release. For example:
 
-XScreenSaver discards arguments not described by its XML when saving its dialog;
-therefore use GTK for color profiles rather than manually adding RGB switches to
-that dialog's command. Numeric/boolean XML controls have checked CLI-compatible
-bounds and defaults. `--print-effective-settings` on the resulting command helps
-explain overrides.
+```ini
+[Settings]
+version=1
+selected=1
+[Profile 1]
+name=Green
+speed=0.35
+[Profile 2]
+name=Two
+[Profile 3]
+name=Three
+[Profile 4]
+name=Four
+[Profile 5]
+name=Five
+```
+
+Omitted fields use defaults; `--profile 1..5` selects a slot for standalone CLI
+runs. GUI configuration is stored by XScreenSaver in its usual configuration file.
 
 The ineffective upstream `waves` toggle is intentionally absent. Real display HDR,
 Windows battery policy, and an on-screen FPS overlay are not implemented; use the

@@ -378,3 +378,31 @@ and defaults to schema-generated help, invokes every numeric endpoint/default an
 boolean argument through the real CLI, and checks all supported non-color fields
 are represented. Profile/default modes and XML color limitations are documented.
 Actual GTK/XScreenSaver UI and rendering checks follow in M3/M4.
+
+## I5 — Final scope and installation
+
+The user withdrew the separate GTK tool after M3. Commit 630b3c5 reverts that
+milestone; the final build has no GTK target or dependency. XScreenSaver's existing
+Settings/preview is the UI. Its XML now covers all 28 schema fields, including six
+RGB channels, and fixes `--profile 0` so its controls are independent of optional
+CLI profiles. The initially planned GTK/profile editor is not shipped.
+
+Final Release graphics/core/CLI checks passed (14 short tests in 9 s, then the XML
+check in 0.64 s after adapting float-color comparison tolerance to float precision).
+A fresh Release build in `build/i5-final` passed all eight display-independent
+checks in 60.32 s, including the existing simulation test (58.49 s). DESTDIR staging
+and launching the staged executable from `/tmp` worked. Installed renderer and XML
+were updated without registering/removing effects or editing existing user profiles.
+
+The actual XScreenSaver GTK dialog parsed the new controls, exposed their labels
+through AT-SPI, saved the fixed-default command, and rendered rain in its embedded
+preview on private Xvfb. The initial screenshot included its unrelated empty-image-
+directory notice; it is not used as a documentation screenshot of the controls.
+A user-open settings instance required isolation of GApplication's session-bus
+registration; subsequent checks used an unavailable session-bus address with the
+AT-SPI bus explicitly supplied. Live preference bytes remained unchanged by these
+checks. Reopen XScreenSaver settings after an XML upgrade to refresh its controls.
+
+No two-hour soak, physical multi-monitor or suspend/resume test was performed,
+following the user's battery constraint. Font/code redistribution questions from
+the study remain open; no redistributable package or release tag was published.
