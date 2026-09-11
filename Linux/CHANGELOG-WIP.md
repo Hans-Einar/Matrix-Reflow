@@ -14,7 +14,7 @@
 * Embedded assets allow execution outside the source/build directory; bounded
   frame runs and PPM capture support inspection without mouse automation.
 
-XScreenSaver integration, animated rendering, bloom and CRT are not yet implemented.
+At this milestone, animated rendering and XScreenSaver integration were still pending.
 
 ## Iteration 2
 
@@ -25,3 +25,6 @@ XScreenSaver integration, animated rendering, bloom and CRT are not yet implemen
 * Density changes refresh column spacing as well as column count.
 * Borrowed X11 host windows use their existing visual; their ownership, geometry,
   title and input handling remain with the host. Vanishing windows exit cleanly.
+* XScreenSaver XML, configurable install paths and an idempotent registration helper
+  add the effect to the existing list without replacing other preferences.
+* Actual embedded and expanded XScreenSaver previews show animated font rain.

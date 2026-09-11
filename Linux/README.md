@@ -1,84 +1,83 @@
 # Matrix Reflow on Linux
 
-Iteration 1 builds a native C99/C++17 application with a FreeType atlas and
-a shared OpenGL 3.3/GLX renderer; XScreenSaver integration belongs to iteration 2.
-See [implementation plan](implementation-plan.md) and [study](study.md).
+The Linux port now renders animated Matrix rain in its own window and inside
+XScreenSaver's actual preview and saver windows. Both use the same OpenGL 3.3/GLX
+renderer, embedded FreeType font atlas and shared C simulation. Bloom, CRT and
+the full configuration tool follow in iterations 3–5.
+See the [implementation plan](implementation-plan.md) and [study](study.md).
 
-The default window is a **static glyph lab**, not animated rain yet. It uses the
-same `Renderer::draw_instances()` entry point, font texture and GLSL shaders that
-will receive simulation output in iteration 2.
+## Build and run
 
-![Linux glyph lab on Intel HD 620](docs/glyph-lab.png)
-
-Top: all 57 glyphs in atlas order. Middle: normal, X-flipped, Y-flipped and
-X+Y-flipped samples (green, yellow, cyan, pink). Bottom: brightness 0.2/0.4/0.6/0.8.
-Some characters are inherently reversed in the original font; those outlines
-are preserved. The screenshot is a lossless PNG conversion of GPU readback.
-
-## Build
-
-The following development packages were verified installed on AlmaLinux 10.2:
-`gcc gcc-c++ cmake make pkgconf-pkg-config libX11-devel libepoxy-devel freetype-devel`.
-OpenGL 3.3 via GLX is the rendering baseline. No Windows SDK is required.
-
-From the repository root:
+Verified on AlmaLinux 10.2 with `gcc gcc-c++ cmake make pkgconf-pkg-config
+libX11-devel libepoxy-devel freetype-devel` and Python 3 for registration tests.
+No Windows SDK is required.
 
 ```sh
-cmake -S Linux -B build/linux -DCMAKE_BUILD_TYPE=Debug
-cmake --build build/linux --parallel
+cmake -S Linux -B build/linux -DCMAKE_BUILD_TYPE=Release
+cmake --build build/linux --parallel 2
 ctest --test-dir build/linux --output-on-failure
-./build/linux/matrix-reflow
+./build/linux/matrix-reflow --windowed
 ```
 
-Use a separate build directory with `-DCMAKE_BUILD_TYPE=Release` for optimized
-builds. CPU tests require no display. Missing development dependencies fail at
-configure time. Build artifacts stay outside source control.
+Escape or window close exits an owned window. `--help` lists simulation and
+diagnostic options. Example: `--depth .7 --panning --speed .4`. `--glyph-lab`
+shows all 57 glyphs and flip modes; `--control` shows the diagnostic scene.
+Assets are embedded, so execution does not depend on the working directory.
+`--dump-atlas /tmp/atlas.pgm` needs no display.
 
-## Atlas inspection
+## XScreenSaver installation
 
-`./build/linux/matrix-reflow --dump-atlas /tmp/matrix-atlas.pgm` writes a top-down
-8-bit image without opening X11. The font is built into the executable; its bytes
-come from `windows/Matrix-Code.ttf`. Generated headers live in the build tree.
-The renderer applies per-instance flips; the atlas itself is not mirrored.
-
-## GLX control scene and checks
-
-Run `./build/linux/matrix-reflow --control` for the windowed control scene.
-Escape or window close exits. Use `--frames 2 --capture /tmp/control.ppm` for
-a bounded run and capture. Shader/font data is embedded, so cwd does not matter.
-`--hidden` leaves the program's own window unmapped for automated checks.
-
-`./build/linux/graphics-test` explicitly runs graphics tests on the current
-DISPLAY. It never targets other applications. To include it in CTest configure
-with `-DREFLOW_GL_TESTS=ON`; otherwise CTest runs only display-independent tests.
-`glyph-render-test` additionally checks all 57 glyphs in four flip modes against
-the CPU atlas, including colors and alpha. It also runs with this CTest option.
-A suitable Xvfb display with GLX can be used for software rendering; this does
-not replace testing the actual GPU or, in iteration 2, XScreenSaver preview.
-
-## Install for local testing
+For the locally built XScreenSaver under `/usr/local`:
 
 ```sh
-cmake --install build/linux --prefix "$HOME/.local"
+sudo cmake --install build/linux --prefix /usr/local
+python3 Linux/xscreensaver/register.py
+xscreensaver-settings
 ```
 
-This installs only `bin/matrix-reflow`. It does not register a screensaver,
-change startup files or start a daemon. XScreenSaver XML and integration are in
-iteration 2. The executable can also be run directly from the build directory.
+Select **Matrix Reflow** to see the embedded preview. Installation places the
+executable in both `bin` and `libexec/xscreensaver`, and XML in
+`share/xscreensaver/config`. Override `REFLOW_XSCREENSAVER_HACK_DIR` and
+`REFLOW_XSCREENSAVER_CONFIG_DIR` at CMake configure time for other installations.
+`DESTDIR` staging is supported. No daemon or screen lock is started by installation.
+
+Registration appends one entry, preserving existing effects and preferences.
+It is idempotent, checks for concurrent file changes, and creates
+`~/.xscreensaver.before-matrix-reflow` on its first change. For a custom install,
+pass `--command /absolute/path/to/matrix-reflow`; `--config FILE` supports staging.
+Close settings while using the helper so its later writes do not undo registration.
+Remove the entry with:
+
+```sh
+python3 Linux/xscreensaver/register.py --remove
+```
+
+The host launches `--root` with `XSCREENSAVER_WINDOW`, or supplies `--window-id ID`.
+An explicit ID takes precedence; XScreenSaver settings may supply both flags.
+The existing visual is used, with single/double buffering matched to that visual.
+Borrowed windows retain their owner's title, geometry and input handling.
+An invalid host fails clearly, without opening another window. `--root` never
+falls back to painting the actual desktop root. `--windowed` ignores the host
+environment and explicitly creates a standalone window.
+
+## Testing and diagnostics
+
+Use `-DREFLOW_GL_TESTS=ON` to include GLX checks on the current DISPLAY. These
+create only their own unmapped windows, including a host that resizes and
+vanishes while borrowed. Without this option, CTest needs no display. The CPU
+suite checks deterministic animation across frame rates, pause recovery, camera
+recycling, settings changes, bounds and injected allocation failures.
+
+`--hidden --frames 2 --warmup 8 --capture /tmp/rain.ppm` captures developed rain
+without mapping a window. `--fps-limit 60` caps rendering; `--duration 5 --stats`
+provides a bounded measurement. Reported frame work includes presentation waits,
+so it is not a GPU-only timer. Captures use the final frame with `--frames`,
+otherwise the first frame. SIGTERM exits normally.
 
 ## Current limits
 
-The GLX host currently owns its window; borrowed XScreenSaver windows come next.
-The glyph lab is static, with SDR output and no bloom/CRT. Windows visual parity
-has not been claimed. Rendering uses top-down atlas UVs, OpenGL clip conventions,
-premultiplied scene blending and an opaque final composite. Font mipmaps stop at
-level 3 to retain integral cell boundaries. This filtering choice will be revisited
-with small animated glyphs during iteration 2.
-
-## Iteration 2 development
-
-The default now shows animated rain. Use `--glyph-lab` for iteration 1's static
-scene. `--speed`, `--density`, `--scale`, `--depth`, `--camera-speed`, `--length`,
-`--mutation`, `--panning`, `--binary` and `--seed` control the simulation; see
-`--help` for ranges. `--warmup 8 --frames 2 --capture /tmp/rain.ppm` captures
-a developed rain field without waiting for the full startup.
+SDR output has no bloom or CRT yet; Windows visual parity is not claimed. The
+scene uses premultiplied blending and an opaque final composite. Font mipmaps
+stop at level 3 to retain integral cell boundaries. Native Wayland and screen
+locking/authentication are outside this port. See [iteration 2 validation](validation.md#i2-m4)
+for hardware coverage, preview checks and the deliberately shortened stability run.

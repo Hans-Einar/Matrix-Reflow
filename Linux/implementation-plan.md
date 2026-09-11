@@ -1,6 +1,6 @@
 # Implementasjonsplan: Matrix-Reflow for Linux
 
-Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 2 pågår, I2-M1–M2 er passert.
+Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 2 pågår, I2-M1–M3 er passert.
 Grunnlag: [portstudien](study.md), upstream-revisjon
 `2577d25f747d629a08e19cd5ad44c9e1b4609002` og brukerens ønskede iterasjonsrekkefølge.
 Repository: `Hans-Einar/Matrix-Reflow`. Målplattform: AlmaLinux 10.2, X11,
@@ -234,7 +234,7 @@ Ugyldig XID og inkompatibel visual håndteres. Testen skal ikke «bestå» ved �
 
 Commit: `feat(linux): I2-M2 render into XScreenSaver-compatible host windows`.
 
-### [ ] I2-M3 — Registrer effekten og få ekte XScreenSaver-preview
+### [x] I2-M3 — Registrer effekten og få ekte XScreenSaver-preview
 
 Leveranse: minimal `matrix-reflow.xml` med `gl="yes"`, riktig oppstartskommando,
 CMake-installasjon av binær/XML og dokumentert registrering i programs-listen.
@@ -257,9 +257,12 @@ grunnleggende `--help` og feilmeldinger. Valider grenser for rendererens CLI-val
 Mål CPU, frame-tid og minne med effekter av som referanse for I3/I4.
 Dokumenter foreløpige forskjeller i utseende og hvilke funksjoner som er utsatt.
 
-Bestått når: en 30-minutters vinduskjøring er gjennomført, samt minst 20
-preview-start/stopp/bytter og gjentatt resize, uten krasj, voksende prosessantall
-eller vedvarende minnevekst. Kontroller håndtering av en syntetisk lang tidsluke.
+Brukerjustering 11. september: 30-minutterstesten utgår fordi maskinen kjører
+på batteri. Bruk korte kontroller videre; ikke start langtesten på nytt.
+
+Bestått når: kort vinduskjøring, minst 20 preview-start/stopp/bytter og gjentatt
+resize er kontrollert uten krasj eller voksende prosessantall. Langtidsstabilitet
+og vedvarende minnevekst er ikke verifisert av disse korte kontrollene. Kontroller håndtering av en syntetisk lang tidsluke.
 Test flere skjermformater nå; fysisk flerskjerm rapporteres som utestet dersom
 utstyret ikke er tilgjengelig. Simulert geometri skal ikke kalles flerskjermtest.
 

@@ -98,3 +98,26 @@ The actual host visual determines FBConfig; single-buffered visuals use front
 buffer rendering and flush, double-buffered visuals use swap.
 XScreenSaver 6.16 appends --window-id to the configured --root command, so those
 flags are intentionally compatible (explicit ID wins). --windowed remains exclusive.
+
+## I2-M3
+
+2026-09-11: installed into `/usr/local` alongside XScreenSaver 6.16. The XML
+was loaded by the actual settings application, which launched the installed
+binary with `--root --window-id`; the expanded preview used `--root` and the
+host environment variable. Both showed changing frames through the same renderer.
+GUI verification used AT-SPI against only the private settings process on Xvfb
+(GLX llvmpipe, Mesa 25.2.7), without operating the real desktop or its lock.
+[Embedded preview readback](docs/xscreensaver-preview.png) is from the real
+681x382 settings preview window; the expanded host was 1280x800. Two snapshots
+300 ms apart differed in each mode. On this local XScreenSaver build the demo
+inherits locking preferences, so the final private preview check temporarily
+disabled lock, then restored the original lock/selection/mode/geometry fields.
+
+Twenty alternating selections of Matrix Reflow/XMatrix each reached one live
+renderer and replaced the previous PID. The expanded preview deactivated and
+closing settings left no renderer behind. This exposed a drawable-loss race
+outside `present()` on software GL; I2-M4 covers that additional draw-phase case.
+Registration tests cover repeated add/remove, multiline entries, preferences,
+custom paths with spaces and selection-index correction when removing an entry.
+The real configuration retains XMatrix as selected, with locking unchanged.
+Removal and install-path overrides are documented in the README.
