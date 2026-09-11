@@ -2,10 +2,11 @@
 #include <epoxy/glx.h>
 
 namespace reflow {
-// Owns only its own window/display. Borrowed-window support comes in iteration 2.
+// Owns its connection, but only destroys windows it created itself.
 class X11Host {
 public:
     X11Host(int width, int height, bool visible = true);
+    explicit X11Host(Window borrowed_window);
     ~X11Host();
     X11Host(const X11Host&) = delete;
     X11Host& operator=(const X11Host&) = delete;
@@ -16,6 +17,7 @@ public:
     GLXFBConfig config() const { return config_; }
     int width() const { return width_; }
     int height() const { return height_; }
+    bool owns_window() const { return owns_window_; }
 private:
     void release();
     Display* display_ = nullptr;
@@ -25,5 +27,6 @@ private:
     Atom delete_window_ = 0;
     int width_, height_;
     bool alive_ = true;
+    bool owns_window_ = true;
 };
 }

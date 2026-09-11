@@ -86,3 +86,15 @@ The density-only world-spacing refresh was corrected in the shared core.
 The existing void update API remains available; Linux uses the new checked API.
 An 8-second simulated rain frame was captured and inspected on Intel HD 620.
 No bloom or CRT was used.
+
+## I2-M2
+
+2026-09-11: borrowed-window-test passed on Intel HD 620: twelve asynchronous
+owner-driven resizes, compatible-visual rendering, preserved host title/window,
+rejected borrower resize, host destruction while GLX is alive, and invalid/root/
+InputOnly windows. GLX presentation and destruction trap raced-away drawables
+instead of allowing Xlib's default fatal error handler to terminate the process.
+The actual host visual determines FBConfig; single-buffered visuals use front
+buffer rendering and flush, double-buffered visuals use swap.
+XScreenSaver 6.16 appends --window-id to the configured --root command, so those
+flags are intentionally compatible (explicit ID wins). --windowed remains exclusive.

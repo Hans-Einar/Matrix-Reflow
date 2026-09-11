@@ -1,6 +1,6 @@
 # Implementasjonsplan: Matrix-Reflow for Linux
 
-Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 2 pågår, I2-M1 er passert.
+Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 2 pågår, I2-M1–M2 er passert.
 Grunnlag: [portstudien](study.md), upstream-revisjon
 `2577d25f747d629a08e19cd5ad44c9e1b4609002` og brukerens ønskede iterasjonsrekkefølge.
 Repository: `Hans-Einar/Matrix-Reflow`. Målplattform: AlmaLinux 10.2, X11,
@@ -103,7 +103,9 @@ Planlagt oppstartsgrensesnitt:
   Manglende eller ugyldig vertsvindu gir en tydelig feil fremfor å tegne på den
   virkelige desktop-roten. Dette kravet dokumenteres i hjelpen.
 * Uten eksplisitt modus: bruk `XSCREENSAVER_WINDOW` dersom den er satt, ellers eget
-  vindu. Motstridende eksplisitte modi avvises; `--windowed` velger alltid eget vindu.
+  vindu. `--root --window-id ID` tillates fordi XScreenSaver legger til vindus-ID ved
+  preview. Eksplisitt vindus-ID går foran miljøvariabelen; `--windowed` kan ikke
+  kombineres med vertsvindusflagg og ignorerer miljøvariabelen.
 * `--help`, `--version`, `--seed`, `--fps-limit` og nødvendige renderingsvalg.
 
 XScreenSaver eier aktivering, inputhåndtering og skjermlås. Porten berører ikke
@@ -218,7 +220,7 @@ Kontroller 16:9, portrett og ultrawide, samt dybde null og større enn null.
 
 Commit: `feat(linux): I2-M1 animate the shared rain simulation`.
 
-### [ ] I2-M2 — Tegn i et lånt X11-vindu
+### [x] I2-M2 — Tegn i et lånt X11-vindu
 
 Leveranse: `--window-id`, `--root` og miljøvariabelen etter kontrakten over.
 Hent vertsvinduets faktiske screen/visual/depth og velg kompatibel GLX-FBConfig.

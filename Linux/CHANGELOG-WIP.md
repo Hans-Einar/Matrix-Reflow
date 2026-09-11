@@ -23,3 +23,5 @@ XScreenSaver integration, animated rendering, bloom and CRT are not yet implemen
 * Parameter validation and transactional core allocation prevent uncontrolled
   growth and preserve existing state on allocation failure.
 * Density changes refresh column spacing as well as column count.
+* Borrowed X11 host windows use their existing visual; their ownership, geometry,
+  title and input handling remain with the host. Vanishing windows exit cleanly.

@@ -27,7 +27,8 @@ int number(const std::string& value, int limit) {
 }
 int main(int argc, char** argv) try {
     int width = 1152, height = 640, frames = 0;
-    bool visible = true, control = false, lab = false;
+    bool visible = true, control = false, lab = false, windowed = false, root = false;
+    Window window_id=0;
     auto settings = mm_settings_default();
     std::uint64_t seed = 12345;
     double warmup = 0;
@@ -41,6 +42,8 @@ int main(int argc, char** argv) try {
         if (arg == "--help") {
             std::cout << "Matrix Reflow Linux - iteration 2\n"
                          "  --windowed           Show animated rain (default)\n"
+                         "  --root               Render in XSCREENSAVER_WINDOW (never desktop root)\n"
+                         "  --window-id ID       Render in a borrowed X11 window\n"
                          "  --size WIDTHxHEIGHT  Window size, each dimension 1..16384\n"
                          "  --glyph-lab          Static font/flip demonstration\n"
                          "  --speed N            Rain speed 0..1 (default .35)\n"
@@ -60,7 +63,7 @@ int main(int argc, char** argv) try {
                          "  --hidden             Leave own X11 window unmapped for tests\n"
                          "  --dump-atlas FILE.pgm Rasterize font and exit; no display needed\n"
                          "  --version            Print version\n"
-                         "Escape or window close exits. XScreenSaver support follows in iteration 2.\n";
+                         "Escape closes owned windows. The host controls borrowed windows.\n";
             return 0;
         } else if (arg == "--version") { std::cout << "Matrix Reflow Linux 0.1.0\n"; return 0; }
         else if (arg == "--size") {
@@ -93,17 +96,37 @@ int main(int argc, char** argv) try {
             else if(arg=="--mutation") settings.mutationRate=v;
             else { if(v<0 || v>120) throw std::runtime_error("Warmup must be 0..120"); warmup=v; }
         }
-        else if (arg != "--windowed")
+        else if (arg == "--windowed") windowed=true;
+        else if (arg == "--root") root=true;
+        else if (arg == "--window-id") {
+            auto id=value();const bool hex=id.rfind("0x",0)==0;if(hex) id.erase(0,2);
+            const auto parsed=std::from_chars(id.data(),id.data()+id.size(),window_id,hex?16:10);
+            if(parsed.ec!=std::errc{} || parsed.ptr!=id.data()+id.size() || !window_id || window_id>0xffffffffUL)
+                throw std::runtime_error("Invalid X11 host window ID");
+        }
+        else
             throw std::runtime_error("Unknown argument: " + arg + "; use --help");
     }
     if (!dump_atlas.empty()) { reflow::build_atlas().write_pgm(dump_atlas); return 0; }
+    if(windowed && (root || window_id)) throw std::runtime_error("--windowed conflicts with host-window options");
+    if(!windowed && !window_id) {
+        if(const char* env=std::getenv("XSCREENSAVER_WINDOW")) {
+            std::string id=env;const bool hex=id.rfind("0x",0)==0;if(hex) id.erase(0,2);
+            const auto parsed=std::from_chars(id.data(),id.data()+id.size(),window_id,hex?16:10);
+            if(parsed.ec!=std::errc{} || parsed.ptr!=id.data()+id.size() || !window_id || window_id>0xffffffffUL)
+                throw std::runtime_error("Invalid XSCREENSAVER_WINDOW");
+        }
+    }
+    if(root && !window_id) throw std::runtime_error("--root requires a host window; desktop root is never used");
+    if(window_id && !visible) throw std::runtime_error("--hidden only applies to owned windows");
     reflow::validate_simulation(settings,static_cast<float>(width)/height);
     std::signal(SIGINT, stop);
     std::signal(SIGTERM, stop);
-    reflow::X11Host host(width, height, visible);
+    auto host_ptr=window_id ? std::make_unique<reflow::X11Host>(window_id) : std::make_unique<reflow::X11Host>(width,height,visible);
+    auto& host=*host_ptr;
     reflow::GlxContext context(host.display(), host.config(), host.window());
     std::cout << context.description() << '\n';
-    reflow::Renderer renderer; // Dies before context, which dies before host.
+    reflow::Renderer renderer(reflow::build_atlas(),context.double_buffered()); // Dies before context, which dies before host.
     const auto instances = reflow::glyph_lab_instances();
     reflow::Simulation simulation(settings,static_cast<float>(host.width())/host.height(),seed);
     for(int i=0;i<static_cast<int>(warmup*60);++i) simulation.advance(1.0/60);
@@ -127,7 +150,7 @@ int main(int argc, char** argv) try {
         else renderer.draw_instances(simulation.data(), simulation.count(), simulation.view());
         ++rendered;
         if (!capture.empty() && (frames ? rendered == frames : rendered == 1)) renderer.write_ppm(capture);
-        context.present();
+        if(!context.present()) break;
         std::this_thread::sleep_until(deadline);
     }
     return 0;
