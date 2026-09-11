@@ -55,3 +55,20 @@ with tempfile.TemporaryDirectory() as directory:
         captures.append(path.read_bytes())
     assert captures[0] == captures[1], 'Snapshot animation or wall clock changed between frames'
 print('Fixed-time snapshots are deterministic across render frames')
+
+with tempfile.TemporaryDirectory() as directory:
+    def capture(args):
+        path = Path(directory) / 'frame.ppm'
+        subprocess.run([binary, '--windowed', '--hidden', '--size', '160x90',
+                        '--snapshot-time', '8', '--frames', '1', '--capture', str(path)] + args,
+                       env=env, check=True, capture_output=True, timeout=5)
+        return path.read_bytes()
+    off = capture(['--no-crt'])
+    on = capture(['--crt'])
+    assert off != on, 'CRT has no effect'
+    assert on == capture(['--crt-identity', '--crt']), 'Explicit CRT did not override identity'
+    identity = capture(['--crt-identity'])
+    assert max(abs(a-b) for a,b in zip(off, identity)) <= 1, 'Identity output mismatch'
+    assert off == capture(['--crt', '--no-crt']), 'CRT bypass changed output'
+    assert capture(['--no-post']) == capture(['--crt', '--no-post']), 'Raw diagnostics did not bypass CRT'
+print('CRT flags, identity, override order and raw bypass passed')

@@ -301,3 +301,62 @@ introduced. The original HLSL two-pixel scanline envelope evaluates to its maxim
 at both pixel centers: visible line variation comes from the sine ripple and RGB
 mask. That reference behavior is deliberately retained, not silently redesigned.
 The identity diagnostic remains available for checking the intermediate/bypass.
+
+## I4-M3
+
+2026-09-11: Release's twelve short tests passed in 8.00 seconds. Debug built and
+CRT reference/lifecycle plus CLI tests passed in 6.77 seconds. The unchanged
+longer simulation test was not repeated on battery. Builds used at most two
+jobs, with no soak test. CPU-reference maximum observed error was one 8-bit level.
+
+All bloom/CRT combinations give byte-identical owned/borrowed readbacks at
+1x1, 3x5, 320x180 and 681x382, including full glass distortion. Owner-driven
+resizing and destruction now exercise CRT as well as bloom. Twenty identity
+on/off/resize cycles check allocation/release, alpha and unmodified bypass.
+CLI checks cover CRT/identity/disable ordering and raw-output bypass.
+The 1080p fixed-time captures with CRT off were compared byte-for-byte against
+the iteration-3 PPMs, both with and without bloom: no differences.
+
+### Visual and XScreenSaver checks
+
+[CRT alone](docs/rain-crt.png), [CRT + bloom](docs/rain-crt-bloom.png),
+[bloom alone](docs/rain-bloom.png) and [neither](docs/rain-no-bloom.png) use seed
+12345, fixed noon, 8 simulated seconds and 9,194 instances. The images were
+visually inspected at output resolution: CRT softens the strokes, adds the fine
+RGB pattern and slightly lifts black without changing geometry. A deliberately
+bright [control scene with full glass distortion](docs/crt-control.png) was also
+inspected for edge treatment and mask structure. The retained scanline-envelope
+behavior is documented under I4-M2; no redesigned scanline effect is claimed.
+
+Actual XScreenSaver 6.16 on private Xvfb/llvmpipe with `xcompmgr -n` exercised
+the Bloom and CRT emulation checkboxes for all four combinations. Each launched
+the expected `--crt` / `--no-bloom` arguments and rendered in the same embedded
+681x382 host. [Embedded CRT + bloom capture](docs/crt-xscreensaver-preview.png).
+An additional check saved the effect settings and launched expanded preview
+with both bloom and `--crt` active. Closing/deactivating left no renderer or test
+server. The checks used 20 FPS and restored the original Matrix entry, effect
+selection and lock preferences. The live session was not restarted or locked.
+
+### Short render-only cost
+
+Same bounded method as I3-M3: three warmup frames and twelve measured frames per
+mode, GL_TIME_ELAPSED queries, fixed scene, full-size RGBA8 output. Actual display
+and measurement size are both 1920x1080 on Intel HD 620 / Mesa 25.2.7. Timings
+exclude simulation, presentation, compositor and pacing. CPU includes driver
+threads; sample ordering and clock/power variation can affect these short runs.
+
+| Bloom | CRT | GPU mean | GPU max | CPU/frame | Draw submission wall |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Off | Off | 1.920 ms | 2.009 ms | 0.369 ms | 0.174 ms |
+| On | Off | 3.767 ms | 3.861 ms | 0.591 ms | 0.278 ms |
+| Off | On | 3.724 ms | 4.181 ms | 0.433 ms | 0.206 ms |
+| On | On | 5.782 ms | 7.319 ms | 0.495 ms | 0.244 ms |
+
+CRT adds approximately 1.8–2.0 ms GPU time in this sample. Its intermediate pixel
+storage is 16,588,800 bytes (15.82 MiB) while active and zero while disabled, as
+reported by the resource diagnostic. This is texture-storage arithmetic, not
+process RSS or driver residency. It is additional to scene and bloom storage.
+No new quality setting or permanent history buffer was introduced. These results
+do not establish sustained FPS, battery drain, thermal behavior or Windows visual
+parity. 4K, physical multi-monitor, suspend/resume, other GPUs and real HDR output
+remain unverified. Full configuration/profile tooling is still iteration 5.

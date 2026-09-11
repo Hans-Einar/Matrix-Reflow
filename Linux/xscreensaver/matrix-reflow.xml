@@ -21,6 +21,6 @@
   <boolean id="binary" _label="Binary characters" arg-set="--binary"/>
   <_description>
 Matrix Reflow: animated digital rain with the original Matrix-Code font.
-Linux OpenGL port of Delmay441/Matrix-Reflow. Multiscale bloom and SDR composition. CRT filtering is planned later.
+Linux OpenGL port of Delmay441/Matrix-Reflow. Multiscale bloom and SDR composition. Optional CRT emulation.
   </_description>
 </screensaver>

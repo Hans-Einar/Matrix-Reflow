@@ -36,8 +36,8 @@ int main(int argc,char** argv) try {
         GLint bits=0;glGetQueryiv(GL_TIME_ELAPSED,GL_QUERY_COUNTER_BITS,&bits);
         if(!bits) throw std::runtime_error("GPU elapsed-time query unavailable");
         GLuint query;glGenQueries(1,&query);
-        for(int mode=0;mode<3;++mode) {
-            renderer.postprocess({mode!=0,mode==2,.9f,0,8});
+        for(int mode=0;mode<5;++mode) {
+            renderer.postprocess({mode!=0,mode==2 || mode==4,.9f,0,8,mode>=3});
             auto draw=[&] {renderer.draw_instances(simulation.data(),simulation.count(),simulation.view(),output.framebuffer.get());};
             for(int i=0;i<3;++i) draw();glFinish();
             const double cpu_start=cpu_seconds();double submit=0,gpu_sum=0,gpu_max=0;
@@ -50,10 +50,10 @@ int main(int argc,char** argv) try {
                 const double ms=ns/1e6;gpu_sum+=ms;gpu_max=std::max(gpu_max,ms);
             }
             const double cpu_ms=(cpu_seconds()-cpu_start)*1000/12;
-            const char* name=mode==0?"raw":mode==1?"no-bloom":"bloom";
+            const char* name=mode==0?"raw":mode==1?"no-bloom":mode==2?"bloom":mode==3?"crt":"crt-bloom";
             std::cout<<w<<'x'<<h<<" mode="<<name<<" frames=12 instances="<<simulation.count()
                      <<" gpu_mean_ms="<<gpu_sum/12<<" gpu_max_ms="<<gpu_max
-                     <<" submit_wall_ms="<<submit/12<<" process_cpu_ms="<<cpu_ms<<std::endl;
+                     <<" crt_bytes="<<renderer.crt_storage_bytes()<<" submit_wall_ms="<<submit/12<<" process_cpu_ms="<<cpu_ms<<std::endl;
             renderer.write_ppm(std::string(argv[1])+"/"+std::to_string(w)+"x"+std::to_string(h)+"-"+name+".ppm");
         }
         glDeleteQueries(1,&query);check_gl("bloom benchmark");

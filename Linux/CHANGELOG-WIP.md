@@ -59,3 +59,8 @@ remain unverified. Bloom, CRT and the full settings tool are still pending.
 * Reference CRT RGB mask, horizontal phosphor spread, channel convergence,
   line ripple, lifted black level, highlight rolloff and vignette. The mask
   uses top-left output-pixel coordinates, independent of scene/camera motion.
+* All bloom/CRT combinations work in standalone and XScreenSaver previews;
+  CRT-off captures match iteration 3 byte-for-byte. CRT remains off by default.
+* Short 1080p checks measured 5.78 ms GPU time with bloom and CRT, with a lazy
+  15.82 MiB CRT intermediate. No long battery-draining tests were run.
+* Added comparison captures, CLI/identity checks and expanded-preview validation.
