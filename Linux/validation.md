@@ -362,3 +362,47 @@ No new quality setting or permanent history buffer was introduced. These results
 do not establish sustained FPS, battery drain, thermal behavior or Windows visual
 parity. 4K, physical multi-monitor, suspend/resume, other GPUs and real HDR output
 remain unverified. Full configuration/profile tooling is still iteration 5.
+
+## I5-M1 — Settings and profiles
+
+Release build with two jobs passed. `settings-test` and `settings-cli-test` passed
+in 0.26 s: all schema boundaries, nonfinite/malformed values, five-profile and
+float-color round trips, file mode 0600, failed-save preservation, future-version
+rejection, absent-file defaults and order-independent profile/CLI precedence.
+Tests use temporary XDG directories and never touch real user profiles.
+
+## I5-M2 — CLI and XScreenSaver mapping
+
+Three settings tests passed in 0.35 s. The XML test compares all numeric bounds
+and defaults to schema-generated help, invokes every numeric endpoint/default and
+boolean argument through the real CLI, and checks all supported non-color fields
+are represented. Profile/default modes and XML color limitations are documented.
+Actual GTK/XScreenSaver UI and rendering checks follow in M3/M4.
+
+## I5 — Final scope and installation
+
+The user withdrew the separate GTK tool after M3. Commit 630b3c5 reverts that
+milestone; the final build has no GTK target or dependency. XScreenSaver's existing
+Settings/preview is the UI. Its XML now covers all 28 schema fields, including six
+RGB channels, and fixes `--profile 0` so its controls are independent of optional
+CLI profiles. The initially planned GTK/profile editor is not shipped.
+
+Final Release graphics/core/CLI checks passed (14 short tests in 9 s, then the XML
+check in 0.64 s after adapting float-color comparison tolerance to float precision).
+A fresh Release build in `build/i5-final` passed all eight display-independent
+checks in 60.32 s, including the existing simulation test (58.49 s). DESTDIR staging
+and launching the staged executable from `/tmp` worked. Installed renderer and XML
+were updated without registering/removing effects or editing existing user profiles.
+
+The actual XScreenSaver GTK dialog parsed the new controls, exposed their labels
+through AT-SPI, saved the fixed-default command, and rendered rain in its embedded
+preview on private Xvfb. The initial screenshot included its unrelated empty-image-
+directory notice; it is not used as a documentation screenshot of the controls.
+A user-open settings instance required isolation of GApplication's session-bus
+registration; subsequent checks used an unavailable session-bus address with the
+AT-SPI bus explicitly supplied. Live preference bytes remained unchanged by these
+checks. Reopen XScreenSaver settings after an XML upgrade to refresh its controls.
+
+No two-hour soak, physical multi-monitor or suspend/resume test was performed,
+following the user's battery constraint. Font/code redistribution questions from
+the study remain open; no redistributable package or release tag was published.

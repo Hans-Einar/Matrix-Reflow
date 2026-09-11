@@ -64,3 +64,14 @@ remain unverified. Bloom, CRT and the full settings tool are still pending.
 * Short 1080p checks measured 5.78 ms GPU time with bloom and CRT, with a lazy
   15.82 MiB CRT intermediate. No long battery-draining tests were run.
 * Added comparison captures, CLI/identity checks and expanded-preview validation.
+
+## Iteration 5
+
+* Shared typed settings schema, version-1 GLib INI storage and five named profile slots.
+* Private atomic saves, strict validation and display-independent effective-settings output.
+* Defaults → saved profile → explicit arguments; CLI never writes profiles.
+* Schema-generated CLI help and complete positive/negative switches, including RGB channels.
+* XScreenSaver Settings exposes all supported fields, including RGB, using explicit defaults.
+* Separate GTK settings app withdrawn at the user’s request; existing XScreenSaver preview remains the UI.
+* Final Release build, staged install, CLI/XML validation and short GLX regression checks passed.
+* Long endurance and additional hardware testing remain deferred while on battery.

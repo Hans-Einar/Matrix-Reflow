@@ -3,14 +3,14 @@
 The Linux port now renders animated Matrix rain in its own window and inside
 XScreenSaver's actual preview and saver windows. Both use the same OpenGL 3.3/GLX
 renderer, embedded FreeType font atlas and shared C simulation. Multiscale bloom
-and SDR composition are implemented, with an optional CRT filter. The full
-configuration tool and profiles follow in iteration 5.
+and SDR composition are implemented, with an optional CRT filter. Configuration and preview use XScreenSaver’s existing Settings dialog.
+There is no separate GTK settings application.
 See the [implementation plan](implementation-plan.md) and [study](study.md).
 
 ## Build and run
 
 Verified on AlmaLinux 10.2 with `gcc gcc-c++ cmake make pkgconf-pkg-config
-libX11-devel libepoxy-devel freetype-devel` and Python 3 for registration tests.
+libX11-devel libepoxy-devel freetype-devel glib2-devel` and Python 3 for registration tests.
 No Windows SDK is required.
 
 ```sh
@@ -140,3 +140,65 @@ scene uses premultiplied blending and an opaque final composite. Font mipmaps
 stop at level 3 to retain integral cell boundaries. Native Wayland and screen
 locking/authentication are outside this port. See [iteration 2 validation](validation.md#i2-m4)
 for hardware coverage, preview checks and the deliberately shortened stability run.
+
+## Profiles and command-line settings
+
+`matrix-reflow` loads the active saved profile, then applies explicit arguments.
+`--profile 1` through `--profile 5` choose stable slots regardless of their names.
+`--profile 0` or `--no-config` uses built-in defaults without reading the file.
+`--no-config` conflicts with a nonzero profile. Argument position does not change
+precedence; repeated individual switches use the last value. CLI never saves.
+
+Profiles use version-1 GLib INI at `$XDG_CONFIG_HOME/matrix-reflow/settings.ini`
+(or `~/.config/matrix-reflow/settings.ini`). Missing files use defaults; malformed
+values and unsupported versions produce an error instead of silently replacing
+settings. Saves atomically replace the file with private permissions. Keep a
+backup before manually editing; simultaneous editors currently use last save wins.
+
+```sh
+matrix-reflow --profile 2 --crt --fps-limit 30
+matrix-reflow --no-config --main-red 0.05 --main-green 0.85 --main-blue 0.25
+matrix-reflow --profile 2 --print-effective-settings
+matrix-reflow --help
+```
+
+Help is generated from the shared schema and includes every supported setting,
+range and default. Each boolean has both `--NAME` and `--no-NAME`. Colors use
+separate `--main-red/green/blue` and `--glitch-red/green/blue` channels, each 0..1.
+Effective-settings output lists the base profile, explicit overrides and resolved
+values without opening a display. Raw-rendering diagnostics (`--no-post`, control,
+glyph lab, snapshot time and identity CRT) remain per-run CLI options, not profiles.
+
+XScreenSaver’s existing **Settings** dialog is the configuration UI. It exposes
+all supported fields, including six RGB channel controls (0..1), and uses its
+existing preview. It always emits `--profile 0` so displayed defaults are accurate
+and optional CLI profiles cannot silently change the effect. No separate GTK
+application is built or installed. Restart the settings dialog after an XML upgrade.
+
+Versioned profile storage remains available to CLI users who maintain an INI file;
+there is no profile editor in this release. For example:
+
+```ini
+[Settings]
+version=1
+selected=1
+[Profile 1]
+name=Green
+speed=0.35
+[Profile 2]
+name=Two
+[Profile 3]
+name=Three
+[Profile 4]
+name=Four
+[Profile 5]
+name=Five
+```
+
+Omitted fields use defaults; `--profile 1..5` selects a slot for standalone CLI
+runs. GUI configuration is stored by XScreenSaver in its usual configuration file.
+
+The ineffective upstream `waves` toggle is intentionally absent. Real display HDR,
+Windows battery policy, and an on-screen FPS overlay are not implemented; use the
+Linux FPS cap and `--stats`. Existing reference clock easter eggs, glyph flips,
+wireframe, texture, fog, camera, gaps, bright heads, bloom and CRT are configurable.
