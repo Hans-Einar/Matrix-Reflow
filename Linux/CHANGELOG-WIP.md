@@ -51,3 +51,8 @@ remain unverified. Bloom, CRT and the full settings tool are still pending.
   GPU/CPU benchmark. The 1080p sample measured 3.93 ms GPU time with bloom.
 * Actual embedded/expanded previews were checked with a compositor; no long
   battery-draining tests were run. CRT filtering remains iteration 4.
+
+## Iteration 4
+
+* Optional full-size CRT intermediate and shared final-output routing, with
+  on-demand allocation, immediate release on disable and identity diagnostics.

@@ -3,6 +3,7 @@
 #include "font_atlas.h"
 #include "mmcore.h"
 #include "bloom.h"
+#include "crt.h"
 #include <memory>
 #include <array>
 #include <cstdint>
@@ -21,6 +22,7 @@ struct RenderView {
 struct PostSettings {
     bool enabled=false, bloom=true;
     float intensity=.9f, distortion=0, time=1.8f;
+    bool crt=false, crt_identity=false;
 };
 class Renderer {
 public:
@@ -28,6 +30,7 @@ public:
     void resize(int width, int height);
     void draw_control();
     void postprocess(const PostSettings& settings);
+    std::uint64_t crt_storage_bytes() const;
     void bloom_level(int level); // 0 = normal scene, 1..5 = extracted diagnostic level
     // Optional caller-owned output FBO allows uncropped offscreen measurement.
     void draw_instances(const MMGlyphInstance* instances, std::size_t count, const RenderView& view, GLuint target=0);
@@ -41,6 +44,8 @@ private:
     PostSettings post_;
     int bloom_level_=0;
     std::unique_ptr<Bloom> bloom_;
+    void final_output(GLuint target=0);
+    std::unique_ptr<CrtPass> crt_;
     void composite(GLuint target = 0);
     int width_ = 0, height_ = 0;
     GLenum output_buffer_ = GL_BACK;

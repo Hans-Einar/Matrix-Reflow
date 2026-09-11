@@ -54,7 +54,7 @@ Renderer::Renderer(const FontAtlas& atlas, bool double_buffered)
 void Renderer::resize(int width, int height) {
     if (width < 0 || height < 0) throw std::runtime_error("Negative render dimensions");
     if (width == width_ && height == height_) return;
-    if (!width || !height) { width_ = width; height_ = height; return; }
+    if (!width || !height) { width_ = width; height_ = height; crt_.reset(); return; }
     GLint max_size = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_size);
     if (width > max_size || height > max_size ||
@@ -135,6 +135,7 @@ void Renderer::postprocess(const PostSettings& settings) {
        !std::isfinite(settings.time) || settings.time<0)
         throw std::runtime_error("Invalid postprocessing settings");
     post_=settings;
+    if(!post_.enabled || !post_.crt) crt_.reset();
 }
 void Renderer::finish_scene(GLuint target) {
     if(bloom_level_ || (post_.enabled && post_.bloom && post_.intensity>0)) {
@@ -142,7 +143,21 @@ void Renderer::finish_scene(GLuint target) {
         bloom_->extract(scene_.get(),width_,height_);
         if(!bloom_level_) bloom_->accumulate();
     } else bloom_.reset();
-    composite(target);
+    final_output(target);
+}
+std::uint64_t Renderer::crt_storage_bytes() const {
+    return crt_ ? static_cast<std::uint64_t>(crt_->input().width)*crt_->input().height*8 : 0;
+}
+void Renderer::final_output(GLuint target) {
+    if(post_.enabled && post_.crt && !bloom_level_) {
+        if(!crt_) crt_=std::make_unique<CrtPass>();
+        crt_->resize(width_,height_);
+        composite(crt_->input().framebuffer.get());
+        crt_->draw(target,output_buffer_,post_.time,post_.crt_identity);
+    } else {
+        crt_.reset();
+        composite(target);
+    }
 }
 void Renderer::composite(GLuint target) {
     glBindFramebuffer(GL_FRAMEBUFFER, target);
@@ -179,7 +194,8 @@ std::vector<std::uint8_t> Renderer::read_rgba() {
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.get(), 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         throw std::runtime_error("Capture framebuffer is incomplete");
-    composite(framebuffer.get());
+    final_output(framebuffer.get());
+    glBindFramebuffer(GL_FRAMEBUFFER,framebuffer.get());
     glReadBuffer(GL_COLOR_ATTACHMENT0);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadPixels(0, 0, width_, height_, GL_RGBA, GL_UNSIGNED_BYTE, result.data());

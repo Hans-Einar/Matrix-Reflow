@@ -1,6 +1,6 @@
 # Implementasjonsplan: Matrix-Reflow for Linux
 
-Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 2 er merget; I3-M1–M3 er passert (integrasjon følges i PR #3).
+Dato: 11. september 2026. Status: iterasjon 1 er merget; iterasjon 3 er merget; iterasjon 4 pågår, I4-M1 er passert.
 Grunnlag: [portstudien](study.md), upstream-revisjon
 `2577d25f747d629a08e19cd5ad44c9e1b4609002` og brukerens ønskede iterasjonsrekkefølge.
 Repository: `Hans-Einar/Matrix-Reflow`. Målplattform: AlmaLinux 10.2, X11,
@@ -326,8 +326,9 @@ PR ferdig når: I3-M1–M3 er passert og I2s preview-kontroller fortsatt består
 Branch: `linux/04-crt`. Avhengighet: merget iterasjon 3.
 Sluttresultat: valgfri CRT-behandling etter komposisjon, av som standard slik
 dagens Reflow-standard tilsier. CRT-forvrengning og CRT-emulering er ulike valg.
+Batterihensyn videreføres: høyst to byggejobber og korte, avgrensede tester.
 
-### [ ] I4-M1 — Valgfritt mål og pass etter komposisjon
+### [x] I4-M1 — Valgfritt mål og pass etter komposisjon
 
 Leveranse: CRT-mellommål opprettes bare når det trengs. Tegnebanen velger direkte
 sluttkomposisjon når CRT er av, ellers komposisjon til mellomtekstur og ett CRT-pass.

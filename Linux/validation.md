@@ -270,3 +270,16 @@ arithmetic, not a measured process/GPU residency value), and is released when
 bloom is unused. Default frame pacing remains 60 FPS; users can choose a lower
 Frame limit on battery. Sustained power/thermal behavior, other GPUs, physical
 multi-monitor, 4K, HDR display output and Windows visual parity remain unverified.
+
+## I4-M1
+
+2026-09-11: CRT lifecycle, existing bloom and glyph pixel tests passed on Intel
+HD 620 in 0.47 seconds. The full-size FP16 intermediate and CRT program are
+created only on demand. Disabling CRT or rendering a zero-sized viewport releases
+the intermediate; readback uses the same final-output route as screen rendering.
+Twenty on/off/resize cycles, including 1x1, preserve bypass pixels exactly.
+The temporary identity filter differs from direct output by at most one 8-bit
+level because of extra FP16 rounding. Repeated capture does not compound effects.
+`--crt`/`--no-crt` and the XML checkbox are wired; `--crt-identity` retains a
+regression diagnostic for later filter work. CRT defaults off. The intermediate
+is an internal HDR texture, not HDR display output.

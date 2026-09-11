@@ -11,6 +11,7 @@
           _low-label="Flat" _high-label="Deep" low="0.0" high="1.5" default="0.0"/>
   <number id="fps-limit" type="spinbutton" arg="--fps-limit %"
           _label="Frame limit" low="1" high="240" default="60"/>
+  <boolean id="crt" _label="CRT emulation" arg-set="--crt"/>
   <boolean id="bloom" _label="Bloom" arg-unset="--no-bloom"/>
   <number id="bloom-strength" type="slider" arg="--bloom-strength %" _label="Glow strength"
           _low-label="None" _high-label="Strong" low="0.0" high="1.0" default="0.9"/>
