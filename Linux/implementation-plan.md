@@ -1,6 +1,6 @@
 # Implementasjonsplan: Matrix-Reflow for Linux
 
-Dato: 11. september 2026. Status: iterasjon 1 pågår; I1-M1–M3 er passert.
+Dato: 11. september 2026. Status: alle fire milepæler i iterasjon 1 er passert. Se PR #1 for merge-status.
 Grunnlag: [portstudien](study.md), upstream-revisjon
 `2577d25f747d629a08e19cd5ad44c9e1b4609002` og brukerens ønskede iterasjonsrekkefølge.
 Repository: `Hans-Einar/Matrix-Reflow`. Målplattform: AlmaLinux 10.2, X11,
@@ -49,9 +49,8 @@ eller det opprinnelige Modern Matrix-prosjektet.
 7. Neste iterasjon starter fra resultatet av denne sammenslåingen. Ikke stable
    alle fem branchene på uferdig kode eller opprette tomme PR-er på forhånd.
 
-Eksisterende `study.md` og denne planen tas med som grunnlagsdokumenter i I1-M1
-dersom de fortsatt er ucommittet da. Denne planleggingsoppgaven oppretter ikke
-implementasjonsbrancher eller markerer fremtidig arbeid som ferdig.
+`study.md` og denne planen ble tatt med som grunnlagsdokumenter i I1-M1.
+Fremtidige iterasjoner er fortsatt planlagt; bare verifiserte milepæler krysses av.
 
 ## Felles arkitektur og arbeidsmåte
 
@@ -132,7 +131,7 @@ cmake --build build/linux --parallel
 ctest --test-dir build/linux --output-on-failure
 ```
 
-Dette er planlagte kommandoer, ikke et byggsystem som finnes allerede.
+Byggkommandoene er implementert i iterasjon 1. Se `README.md` for grafiske tester.
 
 ## Iterasjon 1 — Bygg, fontatlas og GLX-motor
 
@@ -181,7 +180,7 @@ shader eller manglende context gir en tydelig feil, ikke et stille sort vindu.
 
 Commit: `feat(linux): I1-M3 add the shared GLX renderer and scene targets`.
 
-### [ ] I1-M4 — Tegn gjennom samme instancing som regnet skal bruke
+### [x] I1-M4 — Tegn gjennom samme instancing som regnet skal bruke
 
 Leveranse: GL_R8-atlas på GPU, glyph-shader og instansbuffer med stride 40 og
 kontrollerte attributtoffsets. En statisk kontrollscene mater rendereren med
