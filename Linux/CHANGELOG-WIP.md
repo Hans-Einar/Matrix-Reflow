@@ -1,5 +1,15 @@
 # Linux — work in progress
 
+## Current status — 2026-09-11
+
+Iterations 1–5 are implemented and merged to `main`. This is a development
+checkpoint, not a tagged release. The entries below record what each iteration
+added; statements about pending work inside older entries describe that point
+in history. Remaining validation: endurance, more hardware and physical
+multi-monitor/suspend coverage. See [validation](validation.md) for actual checks.
+The repository README now presents the Linux port, preserves Windows instructions
+and credits the direct upstream and inherited project lineage.
+
 ## Iteration 1
 
 * Native CMake build for the shared C99 simulation and a C++17 Linux executable.
