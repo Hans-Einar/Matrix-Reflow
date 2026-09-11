@@ -11,8 +11,9 @@
 #include <utility>
 
 namespace reflow {
-Renderer::Renderer(const FontAtlas& atlas)
-    : atlas_columns_(atlas.columns), atlas_rows_(atlas.rows),
+Renderer::Renderer(const FontAtlas& atlas, bool double_buffered)
+    : output_buffer_(double_buffered ? GL_BACK : GL_FRONT),
+      atlas_columns_(atlas.columns), atlas_rows_(atlas.rows),
       control_(reinterpret_cast<const char*>(resources::fullscreen_vertex),
                reinterpret_cast<const char*>(resources::control_fragment), "control"),
       composite_(reinterpret_cast<const char*>(resources::fullscreen_vertex),
@@ -125,7 +126,7 @@ void Renderer::draw_instances(const MMGlyphInstance* instances, std::size_t coun
 }
 void Renderer::composite(GLuint target) {
     glBindFramebuffer(GL_FRAMEBUFFER, target);
-    glDrawBuffer(target ? GL_COLOR_ATTACHMENT0 : GL_BACK);
+    glDrawBuffer(target ? GL_COLOR_ATTACHMENT0 : output_buffer_);
     glViewport(0, 0, width_, height_);
     glDisable(GL_BLEND);
     glUseProgram(composite_.get());

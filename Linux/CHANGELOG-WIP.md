@@ -14,4 +14,26 @@
 * Embedded assets allow execution outside the source/build directory; bounded
   frame runs and PPM capture support inspection without mouse automation.
 
-XScreenSaver integration, animated rendering, bloom and CRT are not yet implemented.
+At this milestone, animated rendering and XScreenSaver integration were still pending.
+
+## Iteration 2
+
+* Animated rain uses the existing GLX glyph renderer, a fixed 60 Hz simulation,
+  bounded catch-up, wall clock, depth, camera path and synchronized recycling.
+* Parameter validation and transactional core allocation prevent uncontrolled
+  growth and preserve existing state on allocation failure.
+* Density changes refresh column spacing as well as column count.
+* Borrowed X11 host windows use their existing visual; their ownership, geometry,
+  title and input handling remain with the host. Vanishing windows exit cleanly.
+* XScreenSaver XML, configurable install paths and an idempotent registration helper
+  add the effect to the existing list without replacing other preferences.
+* Actual embedded and expanded XScreenSaver previews show animated font rain.
+* A default 60 FPS cap, bounded diagnostic runs and frame statistics make CPU use
+  and pacing measurable; long pauses do not trigger unbounded catch-up.
+* Drawable-loss handling now covers driver requests during drawing and GL teardown,
+  including XScreenSaver removing a full-screen host during deactivation.
+* CLI bounds, stale host environments and SIGTERM are covered by executable tests.
+
+The planned 30-minute run was stopped at the user's request on battery. Short
+checks passed; long-term memory stability and physical multi-monitor behavior
+remain unverified. Bloom, CRT and the full settings tool are still pending.

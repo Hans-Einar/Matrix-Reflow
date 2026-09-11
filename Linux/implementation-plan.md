@@ -1,6 +1,6 @@
 # Implementasjonsplan: Matrix-Reflow for Linux
 
-Dato: 11. september 2026. Status: alle fire milepæler i iterasjon 1 er passert. Se PR #1 for merge-status.
+Dato: 11. september 2026. Status: iterasjon 1 er merget; I2-M1–M4 er passert, og iterasjon 2 er klar for merge.
 Grunnlag: [portstudien](study.md), upstream-revisjon
 `2577d25f747d629a08e19cd5ad44c9e1b4609002` og brukerens ønskede iterasjonsrekkefølge.
 Repository: `Hans-Einar/Matrix-Reflow`. Målplattform: AlmaLinux 10.2, X11,
@@ -103,7 +103,9 @@ Planlagt oppstartsgrensesnitt:
   Manglende eller ugyldig vertsvindu gir en tydelig feil fremfor å tegne på den
   virkelige desktop-roten. Dette kravet dokumenteres i hjelpen.
 * Uten eksplisitt modus: bruk `XSCREENSAVER_WINDOW` dersom den er satt, ellers eget
-  vindu. Motstridende eksplisitte modi avvises; `--windowed` velger alltid eget vindu.
+  vindu. `--root --window-id ID` tillates fordi XScreenSaver legger til vindus-ID ved
+  preview. Eksplisitt vindus-ID går foran miljøvariabelen; `--windowed` kan ikke
+  kombineres med vertsvindusflagg og ignorerer miljøvariabelen.
 * `--help`, `--version`, `--seed`, `--fps-limit` og nødvendige renderingsvalg.
 
 XScreenSaver eier aktivering, inputhåndtering og skjermlås. Porten berører ikke
@@ -203,7 +205,7 @@ Branch: `linux/02-rain-xscreensaver`. Avhengighet: merget iterasjon 1.
 Sluttresultat: brukbar skjermsparer og faktisk preview i `xscreensaver-settings`.
 Utseendet kan være enkelt, men tegn, animasjon og vertsintegrasjon skal fungere.
 
-### [ ] I2-M1 — Koble simuleringen til rendereren
+### [x] I2-M1 — Koble simuleringen til rendereren
 
 Leveranse: fast steg 1/60 sekund, oppsamlet tid begrenset til 0,1 sekund og
 resttid i sekunder til `mm_sim_write_instances`. Implementer projeksjon, kamera,
@@ -218,7 +220,7 @@ Kontroller 16:9, portrett og ultrawide, samt dybde null og større enn null.
 
 Commit: `feat(linux): I2-M1 animate the shared rain simulation`.
 
-### [ ] I2-M2 — Tegn i et lånt X11-vindu
+### [x] I2-M2 — Tegn i et lånt X11-vindu
 
 Leveranse: `--window-id`, `--root` og miljøvariabelen etter kontrakten over.
 Hent vertsvinduets faktiske screen/visual/depth og velg kompatibel GLX-FBConfig.
@@ -232,7 +234,7 @@ Ugyldig XID og inkompatibel visual håndteres. Testen skal ikke «bestå» ved �
 
 Commit: `feat(linux): I2-M2 render into XScreenSaver-compatible host windows`.
 
-### [ ] I2-M3 — Registrer effekten og få ekte XScreenSaver-preview
+### [x] I2-M3 — Registrer effekten og få ekte XScreenSaver-preview
 
 Leveranse: minimal `matrix-reflow.xml` med `gl="yes"`, riktig oppstartskommando,
 CMake-installasjon av binær/XML og dokumentert registrering i programs-listen.
@@ -248,16 +250,19 @@ Dokumenter hvilken installasjon som ble brukt og hvordan oppføringen fjernes.
 
 Commit: `feat(linux): I2-M3 integrate XScreenSaver registration and preview`.
 
-### [ ] I2-M4 — Stabiliser første kjørbare skjermsparer
+### [x] I2-M4 — Stabiliser første kjørbare skjermsparer
 
 Leveranse: ryddig SIGTERM/vindusavslutning, pausehåndtering, frame pacing,
 grunnleggende `--help` og feilmeldinger. Valider grenser for rendererens CLI-valg.
 Mål CPU, frame-tid og minne med effekter av som referanse for I3/I4.
 Dokumenter foreløpige forskjeller i utseende og hvilke funksjoner som er utsatt.
 
-Bestått når: en 30-minutters vinduskjøring er gjennomført, samt minst 20
-preview-start/stopp/bytter og gjentatt resize, uten krasj, voksende prosessantall
-eller vedvarende minnevekst. Kontroller håndtering av en syntetisk lang tidsluke.
+Brukerjustering 11. september: 30-minutterstesten utgår fordi maskinen kjører
+på batteri. Bruk korte kontroller videre; ikke start langtesten på nytt.
+
+Bestått når: kort vinduskjøring, minst 20 preview-start/stopp/bytter og gjentatt
+resize er kontrollert uten krasj eller voksende prosessantall. Langtidsstabilitet
+og vedvarende minnevekst er ikke verifisert av disse korte kontrollene. Kontroller håndtering av en syntetisk lang tidsluke.
 Test flere skjermformater nå; fysisk flerskjerm rapporteres som utestet dersom
 utstyret ikke er tilgjengelig. Simulert geometri skal ikke kalles flerskjermtest.
 

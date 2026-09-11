@@ -405,35 +405,34 @@ static void spawn_column(MMSim *sim, int i, int initial) {
     }
 }
 
-static void rebuild_columns(MMSim *sim, int count) {
-    if (count < 0) count = 0;
+static int rebuild_columns(MMSim *sim, int count) {
+    if (count < 1 || sim->slotCount < 1 || sim->num_lanes < 1 ||
+        count > MM_MAX_INSTANCES / sim->slotCount) return 0;
     int neededCells = count * sim->slotCount;
-    
-    // Expand capacity safely independently of aspect shifts
     if (count > sim->cap || neededCells > sim->cellCap || sim->num_lanes > sim->laneCap) {
-        if (sim->cols) free(sim->cols);
-        if (sim->cells) free(sim->cells);
-        if (sim->cellBlank) free(sim->cellBlank);
-        if (sim->cellFlipsX) free(sim->cellFlipsX); 
-        if (sim->cellFlipsY) free(sim->cellFlipsY); 
-        if (sim->lane_tails) free(sim->lane_tails);
-        if (sim->lane_speeds) free(sim->lane_speeds);
-        if (sim->colSortBuf) free(sim->colSortBuf); 
-        
-        sim->cap = count;
-        sim->cellCap = neededCells;
-        sim->laneCap = sim->num_lanes;
-        
-        sim->cols  = (MMColumn *)malloc(sizeof(MMColumn) * (size_t)sim->cap);
-        sim->cells = (int *)malloc(sizeof(int) * (size_t)sim->cellCap);
-        sim->cellBlank = (int *)malloc(sizeof(int) * (size_t)sim->cellCap);
-        sim->cellFlipsX = (float *)malloc(sizeof(float) * (size_t)sim->cellCap); 
-        sim->cellFlipsY = (float *)malloc(sizeof(float) * (size_t)sim->cellCap); 
-        sim->lane_tails = (float *)malloc(sizeof(float) * sim->laneCap);
-        sim->lane_speeds = (float *)malloc(sizeof(float) * sim->laneCap);
-        sim->colSortBuf = (MMColSortItem *)malloc(sizeof(MMColSortItem) * (size_t)sim->cap); 
+        /* Allocate transactionally: failed growth must preserve the old simulation. */
+        MMColumn *cols = (MMColumn *)malloc(sizeof(MMColumn) * (size_t)count);
+        int *cells = (int *)malloc(sizeof(int) * (size_t)neededCells);
+        int *blank = (int *)malloc(sizeof(int) * (size_t)neededCells);
+        float *flipX = (float *)malloc(sizeof(float) * (size_t)neededCells);
+        float *flipY = (float *)malloc(sizeof(float) * (size_t)neededCells);
+        float *tails = (float *)malloc(sizeof(float) * (size_t)sim->num_lanes);
+        float *speeds = (float *)malloc(sizeof(float) * (size_t)sim->num_lanes);
+        MMColSortItem *sort = (MMColSortItem *)malloc(sizeof(MMColSortItem) * (size_t)count);
+        if (!cols || !cells || !blank || !flipX || !flipY || !tails || !speeds || !sort) {
+            free(cols); free(cells); free(blank); free(flipX); free(flipY);
+            free(tails); free(speeds); free(sort);
+            return 0;
+        }
+        free(sim->cols); free(sim->cells); free(sim->cellBlank);
+        free(sim->cellFlipsX); free(sim->cellFlipsY); free(sim->lane_tails);
+        free(sim->lane_speeds); free(sim->colSortBuf);
+        sim->cols = cols; sim->cells = cells; sim->cellBlank = blank;
+        sim->cellFlipsX = flipX; sim->cellFlipsY = flipY;
+        sim->lane_tails = tails; sim->lane_speeds = speeds; sim->colSortBuf = sort;
+        sim->cap = count; sim->cellCap = neededCells; sim->laneCap = sim->num_lanes;
     }
-    
+
     for (int l = 0; l < sim->num_lanes; ++l) {
         sim->lane_tails[l] = -9999.0f;
         sim->lane_speeds[l] = 0.0f;
@@ -444,10 +443,12 @@ static void rebuild_columns(MMSim *sim, int count) {
         spawn_column(sim, i, 1);
         sim->count++;
     }
+    return 1;
 }
 
 MMSim *mm_sim_create(const MMSettings *s, int glyphCount, uint64_t seed, float aspect) {
     MMSim *sim = (MMSim *)calloc(1, sizeof(MMSim));
+    if (!sim) return NULL;
     sim->glyphCount = glyphCount < 1 ? 1 : glyphCount;
     sim->world = mm_world(s);
     sim->slotCount = sim->world.slotCount;
@@ -472,7 +473,7 @@ MMSim *mm_sim_create(const MMSettings *s, int glyphCount, uint64_t seed, float a
     sim->aspect = aspect;
     sim->num_lanes = mm_strip_count_for_aspect(s, aspect);
     int total_columns = sim->num_lanes * 2; 
-    rebuild_columns(sim, total_columns);
+    if (!rebuild_columns(sim, total_columns)) { mm_sim_destroy(sim); return NULL; }
     
     return sim;
 }
@@ -490,7 +491,9 @@ void mm_sim_destroy(MMSim *sim) {
     free(sim);
 }
 
-void mm_sim_update(MMSim *sim, const MMSettings *s, int glyphCount, float aspect) {
+int mm_sim_update_checked(MMSim *sim, const MMSettings *s, int glyphCount, float aspect) {
+    if (!sim || !s) return 0;
+    MMSim previous = *sim;
     int aspectChanged = (aspect != sim->aspect);
     int new_lanes = mm_strip_count_for_aspect(s, aspect);
     int old_lanes = sim->num_lanes;
@@ -514,14 +517,14 @@ void mm_sim_update(MMSim *sim, const MMSettings *s, int glyphCount, float aspect
         refresh_sim_settings(sim);
     }
     
-    if (scaleChanged || depthChanged) {
+    if (scaleChanged || depthChanged || densityChanged) {
         sim->world = mm_world(s);
         sim->slotCount = sim->world.slotCount;
     }
 
     if (new_lanes != old_lanes || scaleChanged || densityChanged || depthChanged || aspectChanged) {
         sim->num_lanes = new_lanes;
-        rebuild_columns(sim, new_lanes * 2);
+        if (!rebuild_columns(sim, new_lanes * 2)) { *sim = previous; return 0; }
     } else if (glyphsChanged || binaryModeChanged || flipXChanged || flipYChanged) {
         int eleven = mm_eleven_eleven_active(sim);
         for (int i = 0; i < sim->count; ++i) {
@@ -541,6 +544,11 @@ void mm_sim_update(MMSim *sim, const MMSettings *s, int glyphCount, float aspect
             }
         }
     }
+    return 1;
+}
+
+void mm_sim_update(MMSim *sim, const MMSettings *s, int glyphCount, float aspect) {
+    (void)mm_sim_update_checked(sim, s, glyphCount, aspect);
 }
 
 /* ============================================================ Enhancements === */

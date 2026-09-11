@@ -1,41 +1,27 @@
 #include "glx_context.h"
+#include "x11_error.h"
 #include <stdexcept>
 
 namespace reflow {
-namespace {
-// Xlib error handlers are process-global. Context setup runs on the sole X11 thread.
-class ErrorTrap {
-public:
-    explicit ErrorTrap(Display* display) : display_(display) {
-        XSync(display_, False);
-        error_ = 0;
-        previous_ = XSetErrorHandler(handler);
-    }
-    ~ErrorTrap() { XSync(display_, False); XSetErrorHandler(previous_); }
-    int error() { XSync(display_, False); return error_; }
-private:
-    static int handler(Display*, XErrorEvent* e) { error_ = e->error_code; return 0; }
-    inline static int error_ = 0;
-    Display* display_;
-    XErrorHandler previous_;
-};
-}
 GlxContext::GlxContext(Display* display, GLXFBConfig config, Window window) : display_(display) {
     try {
-        int screen = 0;
+        int screen = 0, doubled=0;
+        glXGetFBConfigAttrib(display_,config,GLX_DOUBLEBUFFER,&doubled);
+        double_buffered_=doubled;
         glXGetFBConfigAttrib(display_, config, GLX_SCREEN, &screen);
         if (!epoxy_has_glx_extension(display_, screen, "GLX_ARB_create_context") ||
             !epoxy_has_glx_extension(display_, screen, "GLX_ARB_create_context_profile"))
             throw std::runtime_error("GLX_ARB_create_context/profile required for OpenGL 3.3 core");
-        ErrorTrap trap(display_);
+        XErrorTrap trap(display_);
         const int attrs[] = {
             GLX_CONTEXT_MAJOR_VERSION_ARB, 3, GLX_CONTEXT_MINOR_VERSION_ARB, 3,
             GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB, None
         };
         context_ = glXCreateContextAttribsARB(display_, config, nullptr, True, attrs);
         if (trap.error() || !context_) throw std::runtime_error("Cannot create OpenGL 3.3 core context");
-        drawable_ = glXCreateWindow(display_, config, window, nullptr);
-        if (trap.error() || !drawable_) throw std::runtime_error("Cannot create compatible GLX drawable");
+        const auto drawable = glXCreateWindow(display_, config, window, nullptr);
+        if (trap.error() || !drawable) throw std::runtime_error("Cannot create compatible GLX drawable");
+        drawable_=drawable;
         if (!glXMakeContextCurrent(display_, drawable_, drawable_, context_) || trap.error())
             throw std::runtime_error("Cannot make GLX context current");
         GLint major = 0, minor = 0;
@@ -50,6 +36,7 @@ GlxContext::GlxContext(Display* display, GLXFBConfig config, Window window) : di
 }
 GlxContext::~GlxContext() { release(); }
 void GlxContext::release() {
+    XErrorTrap trap(display_);
     if (context_) {
         glXMakeContextCurrent(display_, None, None, nullptr);
         glXDestroyContext(display_, context_);
@@ -57,7 +44,11 @@ void GlxContext::release() {
     }
     if (drawable_) { glXDestroyWindow(display_, drawable_); drawable_ = 0; }
 }
-void GlxContext::present() { glXSwapBuffers(display_, drawable_); }
+bool GlxContext::present() {
+    XErrorTrap trap(display_);
+    if(double_buffered_) glXSwapBuffers(display_,drawable_); else glFlush();
+    return trap.error()==0;
+}
 std::string GlxContext::description() const {
     return std::string(reinterpret_cast<const char*>(glGetString(GL_RENDERER))) +
         " / OpenGL " + reinterpret_cast<const char*>(glGetString(GL_VERSION));

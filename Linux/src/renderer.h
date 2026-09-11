@@ -18,7 +18,7 @@ struct RenderView {
 };
 class Renderer {
 public:
-    explicit Renderer(const FontAtlas& atlas = build_atlas());
+    explicit Renderer(const FontAtlas& atlas = build_atlas(), bool double_buffered = true);
     void resize(int width, int height);
     void draw_control();
     void draw_instances(const MMGlyphInstance* instances, std::size_t count, const RenderView& view);
@@ -30,6 +30,7 @@ private:
     void begin_scene();
     void composite(GLuint target = 0);
     int width_ = 0, height_ = 0;
+    GLenum output_buffer_ = GL_BACK;
     GlObject scene_{GlKind::Texture}, fbo_{GlKind::Framebuffer}, fullscreen_vao_{GlKind::VertexArray};
     GlObject atlas_{GlKind::Texture}, instance_buffer_{GlKind::Buffer}, glyph_vao_{GlKind::VertexArray};
     int atlas_columns_, atlas_rows_;

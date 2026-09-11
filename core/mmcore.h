@@ -97,6 +97,8 @@ typedef struct {
 
 /* ----------------------------------------------------------------- Simulation -- */
 
+/* Shared allocation ceiling; validate external settings before calling the core. */
+#define MM_MAX_INSTANCES 1048576
 typedef struct MMSim MMSim;
 
 typedef struct {
@@ -112,6 +114,8 @@ typedef struct {
 MMSim *mm_sim_create(const MMSettings *s, int glyphCount, uint64_t seed, float aspect);
 void   mm_sim_destroy(MMSim *sim);
 void   mm_sim_update(MMSim *sim, const MMSettings *s, int glyphCount, float aspect);
+/* Returns zero on allocation/capacity failure, preserving the previous state. */
+int    mm_sim_update_checked(MMSim *sim, const MMSettings *s, int glyphCount, float aspect);
 void   mm_sim_advance(MMSim *sim, float dt);
 int    mm_sim_max_instances(const MMSim *sim);
 

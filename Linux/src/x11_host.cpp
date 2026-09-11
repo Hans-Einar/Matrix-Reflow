@@ -1,4 +1,5 @@
 #include "x11_host.h"
+#include "x11_error.h"
 #include <X11/keysym.h>
 #include <X11/Xutil.h>
 #include <memory>
@@ -48,7 +49,7 @@ X11Host::X11Host(int width, int height, bool visible) : width_(width), height_(h
             width, height, 0, visual->depth, InputOutput, visual->visual,
             CWColormap | CWBackPixel | CWBorderPixel | CWEventMask, &attrs);
         if (!window_) throw std::runtime_error("Cannot create Matrix Reflow window");
-        XStoreName(display_, window_, "Matrix Reflow - Linux glyph lab");
+        XStoreName(display_, window_, "Matrix Reflow");
         XClassHint hint{};
         hint.res_name = const_cast<char*>("matrix-reflow");
         hint.res_class = const_cast<char*>("MatrixReflow");
@@ -60,10 +61,50 @@ X11Host::X11Host(int width, int height, bool visible) : width_(width), height_(h
     } catch (...) { release(); throw; }
 }
 X11Host::~X11Host() { release(); }
+X11Host::X11Host(Window borrowed_window) : width_(0),height_(0),owns_window_(false) {
+    try {
+        if(!borrowed_window) throw std::runtime_error("Host window ID must be nonzero");
+        display_=XOpenDisplay(nullptr);
+        if(!display_) throw std::runtime_error("Cannot open X11 display");
+        XWindowAttributes attrs{};
+        {
+            XErrorTrap trap(display_);
+            const bool found=XGetWindowAttributes(display_,borrowed_window,&attrs);
+            if(trap.error() || !found) throw std::runtime_error("Host window no longer exists");
+        }
+        if(attrs.c_class!=InputOutput || borrowed_window==attrs.root)
+            throw std::runtime_error("Expected a drawable host window, never the desktop root");
+        const int screen=XScreenNumberOfScreen(attrs.screen);
+        int count=0;
+        std::unique_ptr<GLXFBConfig,decltype(&XFree)> configs(glXGetFBConfigs(display_,screen,&count),XFree);
+        if(!configs) throw std::runtime_error("Host display has no GLX framebuffer configurations");
+        for(int i=0;i<count;++i) {
+            int visual=0,drawable=0,render=0,doubled=0;
+            glXGetFBConfigAttrib(display_,configs.get()[i],GLX_VISUAL_ID,&visual);
+            glXGetFBConfigAttrib(display_,configs.get()[i],GLX_DRAWABLE_TYPE,&drawable);
+            glXGetFBConfigAttrib(display_,configs.get()[i],GLX_RENDER_TYPE,&render);
+            glXGetFBConfigAttrib(display_,configs.get()[i],GLX_DOUBLEBUFFER,&doubled);
+            if(static_cast<VisualID>(visual)==XVisualIDFromVisual(attrs.visual) &&
+               (drawable&GLX_WINDOW_BIT) && (render&GLX_RGBA_BIT)) {
+                config_=configs.get()[i];if(doubled) break;
+            }
+        }
+        if(!config_) throw std::runtime_error("Host visual is incompatible with GLX RGBA rendering");
+        window_=borrowed_window;width_=attrs.width;height_=attrs.height;
+        {
+            XErrorTrap trap(display_);
+            XSelectInput(display_,window_,StructureNotifyMask|ExposureMask);
+            if(trap.error()) throw std::runtime_error("Host window vanished while attaching");
+        }
+    } catch(...) {release();throw;}
+}
 void X11Host::release() {
     if (!display_) return;
-    if (window_) XDestroyWindow(display_, window_);
-    if (colormap_) XFreeColormap(display_, colormap_);
+    {
+        XErrorTrap trap(display_);
+        if (window_ && owns_window_) XDestroyWindow(display_, window_);
+        if (colormap_) XFreeColormap(display_, colormap_);
+    }
     XCloseDisplay(display_);
     display_ = nullptr;
     window_ = 0;
@@ -79,17 +120,18 @@ bool X11Host::poll() {
         } else if (event.type == DestroyNotify) {
             window_ = 0;
             alive_ = false;
-        } else if (event.type == ClientMessage && event.xclient.format == 32 &&
+        } else if (owns_window_ && event.type == ClientMessage && event.xclient.format == 32 &&
                    event.xclient.message_type == XInternAtom(display_, "WM_PROTOCOLS", False) &&
                    static_cast<Atom>(event.xclient.data.l[0]) == delete_window_) {
             alive_ = false;
-        } else if (event.type == KeyPress && XLookupKeysym(&event.xkey, 0) == XK_Escape) {
+        } else if (owns_window_ && event.type == KeyPress && XLookupKeysym(&event.xkey, 0) == XK_Escape) {
             alive_ = false;
         }
     }
     return alive_;
 }
 void X11Host::resize(int width, int height) {
+    if(!owns_window_) throw std::runtime_error("A borrowed window is resized by its owner");
     if (width < 1 || height < 1 || width > 16384 || height > 16384)
         throw std::runtime_error("Window dimensions must be 1..16384");
     XResizeWindow(display_, window_, width, height);
