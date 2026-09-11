@@ -332,7 +332,9 @@ Actual XScreenSaver 6.16 on private Xvfb/llvmpipe with `xcompmgr -n` exercised
 the Bloom and CRT emulation checkboxes for all four combinations. Each launched
 the expected `--crt` / `--no-bloom` arguments and rendered in the same embedded
 681x382 host. [Embedded CRT + bloom capture](docs/crt-xscreensaver-preview.png).
-An additional check saved the effect settings and launched expanded preview
+Preview captures were checked after saving settings and waiting for visible rain,
+rather than using the startup background as evidence. An additional check saved
+the effect settings and launched expanded preview
 with both bloom and `--crt` active. Closing/deactivating left no renderer or test
 server. The checks used 20 FPS and restored the original Matrix entry, effect
 selection and lock preferences. The live session was not restarted or locked.
